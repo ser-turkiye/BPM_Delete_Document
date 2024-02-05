@@ -22,7 +22,6 @@ public class DeleteDocument extends UnifiedAgent {
         if (mainTask == null) return resultError("OBJECT CLIENT ID is NULL or not of Type ITask");
         try {
             log.info("----DeleteDocument Agent Started -----");
-            this.helper = new ProcessHelper(getSes());
             notes = mainTask.getDescriptorValue("Notes");
             if(mainTask.getProcessInstance().findLockInfo().getOwnerID() != null){
                 log.error("Task is locked.." + mainTask.getID() + "..restarting agent");
@@ -42,6 +41,7 @@ public class DeleteDocument extends UnifiedAgent {
             log.error(e.getMessage());
             return resultError(e.getMessage());
         }
+        log.info("----DeleteDocument Agent Finished -----");
         return resultSuccess("Agent Finished Succesfully");
     }
 
@@ -54,8 +54,6 @@ public class DeleteDocument extends UnifiedAgent {
             for (ILink link : links) {
                 IInformationObject xdoc = link.getTargetInformationObject();
                 String docInfo = xdoc.getDisplayName();
-                //if (!xdoc.getClassID().equals(Conf.ClassIDs.EngineeringDocument)){continue;}
-                //getDocumentServer().deleteDocument(getSes(),mainDocument);
                 getDocumentServer().deleteInformationObject(getSes(),xdoc);
                 mainTask.setDescriptorValue("Notes",(Objects.equals(notes, "") ? "Deleted InformationObject :" + docInfo : notes + "\n" + "Deleted InformationObject :" + docInfo));
             }
