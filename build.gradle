@@ -1,0 +1,137 @@
+plugins {
+    id 'groovy'
+    id 'application'
+}
+
+group = "de.ser.hh.groovy.sample"
+version = "1.2"
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+    maven {
+        url "https://repo.maven.apache.org/maven2/"
+    }
+    maven {
+        url "https://sergroup.jfrog.io/artifactory/public/"
+    }
+    maven {
+        url "https://repo.e-iceblue.com/nexus/content/groups/public/"
+    }
+}
+
+configurations {
+    implementation.extendsFrom externalImplementation
+    agentsImplementation.extendsFrom implementation
+}
+
+sourceSets {
+    agents {
+        groovy {
+            srcDirs = ['agents/src']
+        }
+    }
+}
+
+dependencies {
+
+    // Agent Tester Library
+    // This also provides all transient dependencies usually found in the Agent Server frameworks
+    // The version number corresponds to the Java API (blueline) version, not the CSB version
+    //implementation (group: 'de.ser.hh.groovy', name: 'agent-tester', version: '8.2.1')
+    implementation 'org.codehaus.groovy:groovy-all:3.0.11'
+
+    implementation (group: 'de.ser.doxis4.agentserver', name: 'agent-interfaces', version: '12.1.1')
+    implementation (group: 'de.ser.doxis4.agentserver', name: 'unified-agent', version: '12.1.1')
+    implementation (group: 'de.ser.doxis4.java-api', name: 'agent-utils', version: '12.1.1')
+    implementation (group: 'de.ser.doxis4.java-api', name: 'blueline', version: '12.1.1')
+
+    // https://mvnrepository.com/artifact/org.docx4j/docx4j
+    implementation (group: 'org.docx4j', name: 'docx4j', version: '6.1.2')
+
+    // https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core
+    implementation 'org.apache.logging.log4j:log4j-core:2.20.0'
+
+    externalImplementation('org.apache.poi:poi:4.1.1')
+    externalImplementation('org.apache.poi:poi-ooxml:4.1.1')
+    implementation (group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.17.2')
+    implementation (group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.17.2')
+    //implementation (group: 'org.apache.logging.log4j', name: 'log4j-slf4j-impl', version: '2.17.2')
+    externalImplementation (group: 'fr.opensagres.xdocreport', name: 'fr.opensagres.poi.xwpf.converter.pdf', version: '2.0.2')
+    // Declare dependencies not provided by the AgentServer as 'externalImplementation'
+    // They will be added to the /build/libs directory when running the 'jar' task
+    externalImplementation (group: 'com.google.code.gson', name: 'gson', version: '2.9.0')
+
+    ///BB-start
+
+    // https://mvnrepository.com/artifact/com.sun.mail/jakarta.mail
+    externalImplementation group: 'com.sun.mail', name: 'jakarta.mail', version: '2.0.1'
+
+    // https://mvnrepository.com/artifact/e-iceblue/spire.xls
+    externalImplementation group: 'e-iceblue', name: 'spire.xls', version: '13.10.0'
+
+    // https://mvnrepository.com/artifact/org.json/json
+    externalImplementation group: 'org.json', name: 'json', version: '20231013'
+
+    // https://mvnrepository.com/artifact/org.apache.poi/poi-ooxml-full
+    externalImplementation group: 'org.apache.poi', name: 'poi-ooxml-full', version: '5.2.3'
+
+    // https://mvnrepository.com/artifact/org.apache.poi/poi-scratchpad
+    externalImplementation group: 'org.apache.poi', name: 'poi-scratchpad', version: '5.2.3'
+
+    // https://mvnrepository.com/artifact/org.apache.poi/poi
+    externalImplementation group: 'org.apache.poi', name: 'poi', version: '5.2.3'
+
+    // https://mvnrepository.com/artifact/org.apache.poi/poi-scratchpad
+    externalImplementation group: 'org.apache.poi', name: 'poi-scratchpad', version: '5.2.3'
+
+    // https://mvnrepository.com/artifact/org.apache.poi/poi-examples
+    externalImplementation group: 'org.apache.poi', name: 'poi-examples', version: '5.2.3'
+
+    ///BB-finish
+
+    // Put local JARs not pulled from a repository into /lib
+    // Example: sapjco3.jar (cannot be hosted in Artifactory)
+    externalImplementation fileTree(dir: 'lib', include: '*.jar')
+
+    // The Groovy sources in agerts/src are compiled for running any tests
+    // When executing the AgentTest they are (re-)compiled by a GroovyScriptEngine
+    testImplementation(sourceSets.agents.output)
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'log4j:log4j:1.2.17'
+    testImplementation (group: 'de.ser.doxis4.java-api', name: 'dx4-sessionpool-api', version: '12.0.0')
+    testImplementation (group: 'de.ser.doxis4.java-api', name: 'dx4-sessionpool-impl', version: '12.0.0')
+}
+task copyExternalDependencies(type: Copy) {
+    group = 'build'
+    into "$buildDir/libs"
+    from configurations.externalImplementation
+}
+
+jar {
+    dependsOn(project.tasks.copyExternalDependencies)
+    // Add the compiled groovy agents
+    // With CSB 4.2+ they can be run as Java agents, because Groovy libs are now on the classpath
+    from sourceSets.agents.output.classesDirs
+}
+
+tasks.withType(GroovyCompile) {
+    groovyOptions.optimizationOptions.indy = true
+}
+
+test {
+    minHeapSize = "4g"
+    maxHeapSize = "4g"
+    systemProperty "file.encoding", "utf-8"
+    useJUnit()
+}
+
+application {
+    mainClass = "junit.AgentTester"
+}
+
+run {
+    standardInput = System.in
+}
