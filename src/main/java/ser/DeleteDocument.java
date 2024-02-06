@@ -18,7 +18,7 @@ public class DeleteDocument extends UnifiedAgent {
     String prjCode = "";
     @Override
     protected Object execute() {
-        mainTask = getEventTask();
+        mainTask = getEventTask().findParentTask();
         if (mainTask == null) return resultError("OBJECT CLIENT ID is NULL or not of Type ITask");
         try {
             log.info("----DeleteDocumentProcess Agent Started -----:" + mainTask.getID());
@@ -35,7 +35,7 @@ public class DeleteDocument extends UnifiedAgent {
                 if (!xdoc.getClassID().equals(Conf.ClassIDs.EngineeringDocument)){continue;}
                 this.deleteDocument(xdoc);
             }
-            mainTask.commit();
+            //mainTask.commit();
         } catch (Exception e) {
             log.error("Exception Caught");
             log.error(e.getMessage());
@@ -55,10 +55,10 @@ public class DeleteDocument extends UnifiedAgent {
                 IInformationObject xdoc = link.getTargetInformationObject();
                 String docInfo = xdoc.getDisplayName();
                 getDocumentServer().deleteInformationObject(getSes(),xdoc);
-                mainTask.setDescriptorValue("Notes",(Objects.equals(notes, "") ? "Deleted InformationObject :" + docInfo : notes + "\n" + "Deleted InformationObject :" + docInfo));
+                //mainTask.setDescriptorValue("Notes",(Objects.equals(notes, "") ? "Deleted InformationObject :" + docInfo : notes + "\n" + "Deleted InformationObject :" + docInfo));
             }
             getDocumentServer().deleteDocument(getSes(),mainDocument);
-            mainTask.setDescriptorValue("Notes",(Objects.equals(notes, "") ? "Deleted InformationObject :" + mainDocInfo : notes + "\n" + "Deleted InformationObject :" + mainDocInfo));
+            //mainTask.setDescriptorValue("Notes",(Objects.equals(notes, "") ? "Deleted InformationObject :" + mainDocInfo : notes + "\n" + "Deleted InformationObject :" + mainDocInfo));
             log.info("Deleted Document");
         } catch (Exception e) {
             throw new Exception("Exeption Caught..deleteDocument: " + e);
