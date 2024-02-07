@@ -51,15 +51,29 @@ public class DeleteDocument extends UnifiedAgent {
         log.info("Deleting Document :" + mainDocument.getID());
         try {
             ILink[] links = getDocumentServer().getReferencedRelationships(getSes(),mainDocument,false,false);
+            ILink[] links2 = getDocumentServer().getReferencingRelationships(getSes(),mainDocument.getID(),false);
             for (ILink link : links) {
                 IInformationObject xdoc = link.getTargetInformationObject();
                 String docInfo = xdoc.getDisplayName();
+                log.info("Delete link doc : " + xdoc.getID());
                 getDocumentServer().deleteInformationObject(getSes(),xdoc);
+                log.info("deleted link doc");
+                //mainTask.setDescriptorValue("Notes",(Objects.equals(notes, "") ? "Deleted InformationObject :" + docInfo : notes + "\n" + "Deleted InformationObject :" + docInfo));
+            }
+            for (ILink link2 : links2) {
+                IInformationObject xdoc = link2.getSourceInformationObject();
+                String docClassID = xdoc.getClassID();
+                InformationObjectType objType = xdoc.getInformationObjectType();
+                log.info("Delete usage object : " + xdoc.getID() + " /// type : " + objType);
+                if(objType != InformationObjectType.PROCESS_INSTANCE){continue;}
+                //if(Objects.equals(docClassID, Conf.ClassIDs.ProjectCard)){continue;}
+                getDocumentServer().deleteInformationObject(getSes(),xdoc);
+                log.info("deleted usage object");
                 //mainTask.setDescriptorValue("Notes",(Objects.equals(notes, "") ? "Deleted InformationObject :" + docInfo : notes + "\n" + "Deleted InformationObject :" + docInfo));
             }
             getDocumentServer().deleteDocument(getSes(),mainDocument);
             //mainTask.setDescriptorValue("Notes",(Objects.equals(notes, "") ? "Deleted InformationObject :" + mainDocInfo : notes + "\n" + "Deleted InformationObject :" + mainDocInfo));
-            log.info("Deleted Document");
+            log.info("Deleted Main Document");
         } catch (Exception e) {
             throw new Exception("Exeption Caught..deleteDocument: " + e);
         }
