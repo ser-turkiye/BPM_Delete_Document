@@ -16,13 +16,11 @@ public class ProcessHelper {
 
     private IDocumentServer documentServer;
     private ISession session;
-
     private Logger log = LogManager.getLogger();
     public ProcessHelper(ISession session){
         this.session = session;
         this.documentServer = session.getDocumentServer();
     }
-
     public IProcessInstance buildNewProcessInstanceForID(String id){
         try{
             log.info("Building new Process Instance with ID: " +id );
@@ -97,6 +95,22 @@ public class ProcessHelper {
             }
         }
         return true;
+    }
+    public IInformationObject[] createQuery(String[] dbNames , String whereClause , int maxHits){
+        String[] databaseNames = dbNames;
+
+        ISerClassFactory fac = documentServer.getClassFactory();
+        IQueryParameter que = fac.getQueryParameterInstance(
+                session ,
+                databaseNames ,
+                fac.getExpressionInstance(whereClause) ,
+                null,null);
+        que.setMaxHits(maxHits);
+        que.setHitLimit(maxHits + 1);
+        que.setHitLimitThreshold(maxHits + 1);
+        IDocumentHitList hits = que.getSession() != null? que.getSession().getDocumentServer().query(que, que.getSession()):null;
+        if(hits == null) return null;
+        else return hits.getInformationObjects();
     }
     public String getDocumentURL(String documentID){
         StringBuilder webcubeUrl = new StringBuilder();

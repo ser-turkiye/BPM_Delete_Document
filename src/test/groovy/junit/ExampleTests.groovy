@@ -23,7 +23,7 @@ class ExampleTests {
 
         def agent = new DeleteDocument();
 
-        binding["AGENT_EVENT_OBJECT_CLIENT_ID"] = "ST03BPM24857a0b4a-96eb-4bc4-9449-7bc5f7fb7d9d182024-02-06T07:29:10.382Z011"
+        binding["AGENT_EVENT_OBJECT_CLIENT_ID"] = "ST03BPM24e75643d3-8fe9-44a5-b3f7-e0fd63c1a4cc182024-02-08T11:41:27.710Z011"
 
         def result = (AgentExecutionResult)agent.execute(binding.variables)
         System.out.println(result)
