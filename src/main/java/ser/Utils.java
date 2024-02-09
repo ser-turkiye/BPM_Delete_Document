@@ -1,6 +1,5 @@
 package ser;
 
-
 import com.ser.blueline.*;
 import com.ser.blueline.bpm.IBpmService;
 import com.ser.blueline.bpm.IWorkbasket;

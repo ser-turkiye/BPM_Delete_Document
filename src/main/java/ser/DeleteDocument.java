@@ -29,7 +29,6 @@ public class DeleteDocument extends UnifiedAgent {
         IUser processOwner = processInstance.getOwner();
         String uniqueId = UUID.randomUUID().toString();
 
-
         if (mainTask == null) return resultError("OBJECT CLIENT ID is NULL or not of Type ITask");
         try {
             com.spire.license.LicenseProvider.setLicenseKey(Conf.Licences.SPIRE_XLS);
@@ -67,7 +66,7 @@ public class DeleteDocument extends UnifiedAgent {
 
                 String umail = processOwner.getEMailAddress();
                 List<String> mails = new ArrayList<>();
-
+                log.info("Mail To : " + String.join(";", mails));
                 if (umail != null) {
                     mails.add(umail);
                     JSONObject mail = new JSONObject();
