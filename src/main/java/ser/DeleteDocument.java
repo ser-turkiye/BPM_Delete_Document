@@ -88,9 +88,9 @@ public class DeleteDocument extends UnifiedAgent {
     }
     private void deleteDocument(IInformationObject mainInfo) throws Exception {
         mainDocument = (IDocument) mainInfo;
-        String mainDocInfo = mainDocument.getDisplayName();
+        String apprCode = mainDocument.getDescriptorValue(Conf.Descriptors.DocNumber);
         log.info("Deleting Document :" + mainDocument.getID());
-        docs.add(mainDocument.getDescriptorValue(Conf.Descriptors.DocNumber));
+        docs.add((apprCode == null ? "No Document Number" : apprCode));
         try {
             ILink[] links = getDocumentServer().getReferencedRelationships(getSes(),mainDocument,false,false);
             ILink[] links2 = getDocumentServer().getReferencingRelationships(getSes(),mainDocument.getID(),false);
