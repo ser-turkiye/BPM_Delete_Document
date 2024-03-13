@@ -1,9 +1,10 @@
 package ser;
 
 import com.ser.blueline.*;
-import com.ser.blueline.bpm.IBpmService;
-import com.ser.blueline.bpm.IWorkbasket;
+import com.ser.blueline.bpm.*;
 import com.ser.blueline.metaDataComponents.*;
+import com.ser.foldermanager.IElement;
+import com.ser.foldermanager.IElements;
 import com.ser.foldermanager.IFolder;
 import com.ser.foldermanager.INode;
 import com.spire.xls.FileFormat;
@@ -20,6 +21,8 @@ import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.internet.MimeMultipart;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.poi.common.usermodel.HyperlinkType;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellReference;
@@ -37,6 +40,42 @@ import java.util.zip.ZipOutputStream;
 
 public class Utils {
 
+    public static Logger log = LogManager.getLogger();
+    public static ISession session = null;
+    public static IDocumentServer server = null;
+    public static IBpmService bpm;
+    public static void loadDirectory(String path) {
+        (new File(path)).mkdir();
+    }
+    public static boolean hasDescriptor(IInformationObject object, String descName){
+        IDescriptor[] descs = session.getDocumentServer().getDescriptorByName(descName, session);
+        List<String> checkList = new ArrayList<>();
+        for(IDescriptor ddsc : descs){
+            checkList.add(ddsc.getId());
+        }
+
+        String[] descIds = new String[0];
+        if(object instanceof IFolder){
+            String classID = object.getClassID();
+            IArchiveFolderClass folderClass = session.getDocumentServer().getArchiveFolderClass(classID , session);
+            descIds = folderClass.getAssignedDescriptorIDs();
+        }else if(object instanceof IDocument){
+            IArchiveClass documentClass = ((IDocument) object).getArchiveClass();
+            descIds = documentClass.getAssignedDescriptorIDs();
+        }else if(object instanceof ITask){
+            IProcessType processType = ((ITask) object).getProcessType();
+            descIds = processType.getAssignedDescriptorIDs();
+        }else if(object instanceof IProcessInstance){
+            IProcessType processType = ((IProcessInstance) object).getProcessType();
+            descIds = processType.getAssignedDescriptorIDs();
+        }
+
+        List<String> descList = Arrays.asList(descIds);
+        for(String dId : descList){
+            if(checkList.contains(dId)){return true;}
+        }
+        return false;
+    }
     public static JSONObject getSystemConfig(ISession ses, IStringMatrix mtrx) throws Exception {
         if(mtrx == null){
             mtrx = ses.getDocumentServer().getStringMatrix("CCM_SYSTEM_CONFIG", ses);
@@ -127,8 +166,8 @@ public class Utils {
         }
         return String.join(";", rtrn);
     }
-    public static void sendHTMLMail(ISession ses, IDocumentServer srv, String mtpn, JSONObject pars) throws Exception {
-        JSONObject mcfg = Utils.getMailConfig(ses, srv, mtpn);
+    public static void sendHTMLMail(JSONObject pars, JSONObject conf) throws Exception {
+        JSONObject mcfg = conf != null ? conf : Utils.getMailConfig();
 
         String host = mcfg.getString("host");
         String port = mcfg.getString("port");
@@ -243,8 +282,47 @@ public class Utils {
     static String getFileContent (String path) throws Exception {
         return new String(Files.readAllBytes(Paths.get(path)));
     }
-    static JSONObject getMailConfig(ISession ses, IDocumentServer srv, String mtpn) throws Exception {
-        return getMailConfig(ses, srv, mtpn, null);
+    public static IStringMatrix getMailConfigMatrix() throws Exception {
+        IStringMatrix rtrn = server.getStringMatrix("CCM_MAIL_CONFIG", session);
+        if (rtrn == null) throw new Exception("MailConfig Global Value List not found");
+        return rtrn;
+    }
+    public static JSONObject getMailConfig() throws Exception {
+        return getMailConfig(null);
+    }
+    public static JSONObject getMailConfig(IStringMatrix mtrx) throws Exception {
+        if(mtrx == null){
+            mtrx = getMailConfigMatrix();
+        }
+        if(mtrx == null) throw new Exception("MailConfig Global Value List not found");
+        List<List<String>> rawTable = mtrx.getRawRows();
+
+        JSONObject rtrn = new JSONObject();
+        for(List<String> line : rawTable) {
+            rtrn.put(line.get(0), line.get(1));
+        }
+        return rtrn;
+    }
+    public static JSONObject getProjectWorkspaces(ProcessHelper helper) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("TYPE = '").append(Conf.ClassIDs.ProjectWorkspace).append("'");
+        String whereClause = builder.toString();
+
+        IInformationObject[] list = helper.createQuery(new String[]{Conf.Databases.ProjectCard} , whereClause , "", 0, false);
+        JSONObject rtrn = new JSONObject();
+
+        for(IInformationObject item : list){
+            if(!hasDescriptor(item, Conf.Descriptors.ProjectNo)){continue;}
+
+            String prjn = item.getDescriptorValue(Conf.Descriptors.ProjectNo, String.class);
+            prjn = (prjn == null ? "" : prjn);
+
+            if(prjn.isEmpty()){continue;}
+            if(rtrn.has(prjn)){continue;}
+            rtrn.put(prjn, item);
+        }
+
+        return rtrn;
     }
     static JSONObject getMailConfig(ISession ses, IDocumentServer srv, String mtpn, IStringMatrix mtrx) throws Exception {
         if(mtrx == null){
@@ -277,19 +355,32 @@ public class Utils {
     static JSONObject getWorkbasket(ISession ses, IDocumentServer srv, String userID) throws Exception {
         return getWorkbasket(ses, srv, userID, null);
     }
-    public static IDocument getTemplateDocument(String prjNo, String tpltName, ProcessHelper helper)  {
-        StringBuilder builder = new StringBuilder();
-        builder.append("TYPE = '").append(Conf.ClassIDs.Template).append("'")
-                .append(" AND ")
-                .append(Conf.DescriptorLiterals.PrjCardCode).append(" = '").append(prjNo).append("'")
-                .append(" AND ")
-                .append(Conf.DescriptorLiterals.ObjectNumberExternal).append(" = '").append(tpltName).append("'");
-        String whereClause = builder.toString();
-        System.out.println("Where Clause: " + whereClause);
+    public static IDocument getTemplateDocument(IInformationObject info, String tpltName) throws Exception {
+        List<INode> nods = ((IFolder) info).getNodesByName("Templates");
+        IDocument rtrn = null;
+        for(INode node : nods){
+            IElements elms = node.getElements();
 
-        IInformationObject[] informationObjects = helper.createQuery(new String[]{Conf.Databases.Company} , whereClause , 1);
-        if(informationObjects.length < 1) {return null;}
-        return (IDocument) informationObjects[0];
+            for(int i=0;i<elms.getCount2();i++) {
+                IElement nelement = elms.getItem2(i);
+                String edocID = nelement.getLink();
+                IInformationObject tplt = info.getSession().getDocumentServer().getInformationObjectByID(edocID, info.getSession());
+                if(tplt == null){continue;}
+
+                if(!hasDescriptor(tplt, Conf.Descriptors.TemplateName)){continue;}
+
+                String etpn = tplt.getDescriptorValue(Conf.Descriptors.TemplateName, String.class);
+                if(etpn == null || !etpn.equals(tpltName)){continue;}
+
+                rtrn = (IDocument) tplt;
+                break;
+            }
+            if(rtrn != null){break;}
+        }
+        if(rtrn != null && server != null && session != null) {
+            rtrn = server.getDocumentCurrentVersion(session, rtrn.getID());
+        }
+        return rtrn;
     }
     static JSONObject getWorkbasket(ISession ses, IDocumentServer srv, String userID, IStringMatrix mtrx) throws Exception {
         if(mtrx == null){
@@ -490,16 +581,6 @@ public class Utils {
         tmp = rtr1.toString();
 
         return tmp;
-    }
-    static IInformationObject[] getSubProcessies(String mainDocId, ProcessHelper helper)  {
-        StringBuilder builder = new StringBuilder();
-        builder.append("TYPE = '").append(Conf.ClassIDs.SubProcess).append("'")
-                .append(" AND ")
-                .append(Conf.DescriptorLiterals.MainTaskReference).append(" = '").append(mainDocId).append("'");
-        String whereClause = builder.toString();
-        System.out.println("Where Clause: " + whereClause);
-
-        return helper.createQuery(new String[]{Conf.Databases.BPM} , whereClause, 0);
     }
     public static void saveFileContent(String path, String cntn) throws IOException {
         FileOutputStream outputStream = new FileOutputStream(path);

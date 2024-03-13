@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Conf {
-    public static class ExcelTransmittalPaths {
+    public static class Paths {
         public static final String MainPath = "C:/tmp2/bulk/transmittal";
         //hello
     }
@@ -19,7 +19,8 @@ public class Conf {
         public static final String WebBase = "http://localhost/webcube/";
     }
     public static class DeleteProcessSheetIndex {
-        public static final Integer Mail = 0;
+        public static final Integer Deletion = 0;
+        public static final Integer Deleted = 1;
     }
     public static class Databases{
         public static final String Company = "D_QCON";
@@ -47,6 +48,7 @@ public class Conf {
         public static final String DocNumber = "ccmPrjDocNumber";
         public static final String Revision = "ccmPrjDocRevision";
         public static final String ObjectNumber = "ObjectNumber";
+        public static final String TemplateName = "ObjectNumberExternal";
     }
     public static class Tasks{
         public static final String MainProcessFirstTask = "Wait for Parallel Approval";
@@ -93,6 +95,7 @@ public class Conf {
         public static final String InternalProjectUsers = "Internal Project Users";
         public static final String ExternalDCC = "External DCC";
         public static final String InternalDCC = "Internal DCC";
+        public static final String Admins = "admins";
     }
 
 

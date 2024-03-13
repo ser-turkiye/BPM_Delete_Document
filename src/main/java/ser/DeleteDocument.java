@@ -17,6 +17,7 @@ public class DeleteDocument extends UnifiedAgent {
     private Logger log = LogManager.getLogger();
     private ProcessHelper helper;
     private IDocument mainDocument;
+    JSONObject projects = new JSONObject();
     private ITask mainTask;
     private String notes;
     String prjn = "";
@@ -32,7 +33,14 @@ public class DeleteDocument extends UnifiedAgent {
         if (mainTask == null) return resultError("OBJECT CLIENT ID is NULL or not of Type ITask");
         try {
             com.spire.license.LicenseProvider.setLicenseKey(Conf.Licences.SPIRE_XLS);
-            this.helper = new ProcessHelper(getSes());
+
+
+            Utils.session = getSes();
+            Utils.bpm = getBpm();
+            Utils.server = Utils.session.getDocumentServer();
+            Utils.loadDirectory(Conf.Paths.MainPath);
+
+            helper = new ProcessHelper(getSes());
             log.info("----DeleteDocumentProcess Agent Started -----:" + mainTask.getID());
             notes = mainTask.getDescriptorValue("Notes");
             if(mainTask.getProcessInstance().findLockInfo().getOwnerID() != null){
@@ -50,16 +58,25 @@ public class DeleteDocument extends UnifiedAgent {
             }
             //mainTask.commit();
             String mtpn = "DOCUMENT_DELETION_MAIL";
+
+            projects = Utils.getProjectWorkspaces(helper);
+            IDocument mtpl = null;
+            for(String prjn : projects.keySet()){
+                IInformationObject prjt = (IInformationObject) projects.get(prjn);
+                IDocument dtpl = Utils.getTemplateDocument(prjt, mtpn);
+                if(dtpl == null){continue;}
+                mtpl = dtpl;
+                break;
+            }
             JSONObject dbks = new JSONObject();
             dbks.put("docs", String.join(", ", docs));
 
-            IDocument mtpl = Utils.getTemplateDocument(prjn, mtpn, helper);
             if(mtpl == null){
                 log.info("Template-Document [ " + mtpn + " ] not found.");
                 //throw new Exception("Template-Document [ " + mtpn + " ] not found.");
             }else {
                 String tplMailPath = Utils.exportDocument(mtpl, Conf.DeleteProcess.MainPath, mtpn + "[" + uniqueId + "]");
-                String mailExcelPath = Utils.saveDocReviewExcel(tplMailPath, Conf.DeleteProcessSheetIndex.Mail,
+                String mailExcelPath = Utils.saveDocReviewExcel(tplMailPath, Conf.DeleteProcessSheetIndex.Deleted,
                         Conf.DeleteProcess.MainPath + "/" + mtpn + "[" + uniqueId + "].xlsx", dbks
                 );
                 String mailHtmlPath = Utils.convertExcelToHtml(mailExcelPath, Conf.DeleteProcess.MainPath + "/" + mtpn + "[" + uniqueId + "].html");
@@ -71,9 +88,9 @@ public class DeleteDocument extends UnifiedAgent {
                     mails.add(umail);
                     JSONObject mail = new JSONObject();
                     mail.put("To", String.join(";", mails));
-                    mail.put("Subject", "Deletion Documents");
+                    mail.put("Subject", "Deleted Documents");
                     mail.put("BodyHTMLFile", mailHtmlPath);
-                    Utils.sendHTMLMail(getSes(), getSes().getDocumentServer(), "CCM_MAIL_CONFIG", mail);
+                    Utils.sendHTMLMail(mail, null);
                 } else {
                     log.info("Mail adress is null :" + processOwner.getFullName());
                 }

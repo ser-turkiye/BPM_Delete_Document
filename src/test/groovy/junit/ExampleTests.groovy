@@ -3,6 +3,7 @@ package junit
 import de.ser.doxis4.agentserver.AgentExecutionResult
 import org.junit.*
 import ser.DeleteDocument
+import ser.DeletionDocs
 
 class ExampleTests {
 
@@ -21,9 +22,9 @@ class ExampleTests {
     @Test
     void testForAgentResult() {
 
-        def agent = new DeleteDocument();
+        def agent = new DeletionDocs();
 
-        binding["AGENT_EVENT_OBJECT_CLIENT_ID"] = "ST03BPM24e75643d3-8fe9-44a5-b3f7-e0fd63c1a4cc182024-02-08T11:41:27.710Z011"
+        binding["AGENT_EVENT_OBJECT_CLIENT_ID"] = "ST03BPM245ad681ac-dc12-4ab6-9358-73f2d9cec1e5182024-03-12T08:36:30.056Z010"
 
         def result = (AgentExecutionResult)agent.execute(binding.variables)
         System.out.println(result)
