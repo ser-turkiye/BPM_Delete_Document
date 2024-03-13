@@ -79,7 +79,9 @@ public class DeleteDocument extends UnifiedAgent {
                 String mailExcelPath = Utils.saveDocReviewExcel(tplMailPath, Conf.DeleteProcessSheetIndex.Deleted,
                         Conf.DeleteProcess.MainPath + "/" + mtpn + "[" + uniqueId + "].xlsx", dbks
                 );
-                String mailHtmlPath = Utils.convertExcelToHtml(mailExcelPath, Conf.DeleteProcess.MainPath + "/" + mtpn + "[" + uniqueId + "].html");
+                String mailHtmlPath = Utils.convertExcelToHtml(mailExcelPath,
+                        Conf.DeleteProcessSheetIndex.Deleted,
+                        Conf.DeleteProcess.MainPath + "/" + mtpn + "[" + uniqueId + "].html");
 
                 String umail = processOwner.getEMailAddress();
                 List<String> mails = new ArrayList<>();

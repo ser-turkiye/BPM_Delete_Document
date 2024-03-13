@@ -84,7 +84,9 @@ public class DeletionDocs extends UnifiedAgent {
                 String mailExcelPath = Utils.saveDocReviewExcel(tplMailPath, Conf.DeleteProcessSheetIndex.Deletion,
                         Conf.DeleteProcess.MainPath + "/" + mtpn + "[" + uniqueId + "].xlsx", dbks
                 );
-                String mailHtmlPath = Utils.convertExcelToHtml(mailExcelPath, Conf.DeleteProcess.MainPath + "/" + mtpn + "[" + uniqueId + "].html");
+                String mailHtmlPath = Utils.convertExcelToHtml(mailExcelPath,
+                        Conf.DeleteProcessSheetIndex.Deletion,
+                        Conf.DeleteProcess.MainPath + "/" + mtpn + "[" + uniqueId + "].html");
 
                 JSONObject mail = new JSONObject();
                 mail.put("To", String.join(";", mails));

@@ -494,10 +494,10 @@ public class Utils {
         return pdfPath;
     }
 
-    public static String convertExcelToHtml(String excelPath, String htmlPath)  {
+    public static String convertExcelToHtml(String excelPath, Integer shtIx, String htmlPath)  {
         Workbook workbook = new Workbook();
         workbook.loadFromFile(excelPath);
-        Worksheet sheet = workbook.getWorksheets().get(0);
+        Worksheet sheet = workbook.getWorksheets().get(shtIx);
         HTMLOptions options = new HTMLOptions();
         options.setImageEmbedded(true);
         sheet.saveToHtml(htmlPath, options);
