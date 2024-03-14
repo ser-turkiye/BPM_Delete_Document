@@ -28,6 +28,7 @@ public class Conf {
         public static final String EngineeringDocument= "PRJ_DOC";
         public static final String EngineeringCRS = "PRJ_CRS";
         public static final String BPM = "BPM";
+        public static final String Process = "BPM";
 
     }
 
@@ -77,6 +78,8 @@ public class Conf {
         public static final String EngineeringAttachments = "3e1fe7b3-3e86-4910-8155-c29b662e71d6";
         public static final String Template = "b9cf43d1-a4d3-482f-9806-44ae64c6139d";
         public static final String SubProcess = "629a28c4-6c36-44d0-90f7-1e5802f038e8";
+        public static final String ReviewMain = "69d42aaf-6978-4b5a-8178-88a78f4b3158";
+        public static final String MultiReviewMain = "1dc85f54-f737-4867-b538-71c6277da8f0";
         public static final String ProjectWorkspace = "32e74338-d268-484d-99b0-f90187240549";
         public static final String ExternalProjectUsers = "f59d2677-6fb5-4651-9666-0e555b45dc36";
         public static final String InternalProjectUsers = "7c191f7d-f3f7-4743-b913-08139a5769e1";

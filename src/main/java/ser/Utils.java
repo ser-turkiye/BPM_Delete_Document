@@ -405,50 +405,6 @@ public class Utils {
         }
         return null;
     }
-    static void copyFile(String spth, String tpth) throws Exception {
-        FileUtils.copyFile(new File(spth), new File(tpth));
-    }
-    public static void deleteRow(Sheet sheet, int rowNo) throws IOException {
-        int lastRowNum = sheet.getLastRowNum();
-        if (rowNo >= 0 && rowNo < lastRowNum) {
-            sheet.shiftRows(rowNo + 1, lastRowNum, -1);
-        }
-        if (rowNo == lastRowNum) {
-            Row removingRow=sheet.getRow(rowNo);
-            if(removingRow != null) {
-                sheet.removeRow(removingRow);
-            }
-        }
-    }
-    public static void removeRows(String spth, String tpth, Integer shtIx, String prfx, Integer colIx, List<Integer> hlst, List<String> tlst) throws IOException {
-
-        FileInputStream tist = new FileInputStream(spth);
-        XSSFWorkbook twrb = new XSSFWorkbook(tist);
-
-        Sheet tsht = twrb.getSheetAt(shtIx);
-        JSONObject rows = Utils.getRowGroups(tsht, prfx, colIx);
-
-        for (String pkey : rows.keySet()) {
-            Row crow = (Row) rows.get(pkey);
-            crow.getCell(colIx).setBlank();
-
-            if(tlst.contains(pkey)){
-                continue;
-            }
-
-            crow.setZeroHeight(true);
-            //deleteRow(tsht, crow.getRowNum());
-        }
-
-        for(Integer hcix : hlst){
-            tsht.setColumnHidden(hcix, true);
-        }
-
-        FileOutputStream tost = new FileOutputStream(tpth);
-        twrb.write(tost);
-        tost.close();
-
-    }
     public static String saveDocReviewExcel(String templatePath, Integer shtIx, String tpltSavePath, JSONObject pbks) throws IOException {
 
         FileInputStream tist = new FileInputStream(templatePath);
@@ -484,16 +440,6 @@ public class Utils {
         tost.close();
         return tpltSavePath;
     }
-
-  public static String convertExcelToPdf(String excelPath, String pdfPath)  {
-        Workbook workbook = new Workbook();
-        workbook.loadFromFile(excelPath);
-        workbook.getConverterSetting().setSheetFitToPage(true);
-        workbook.saveToFile(pdfPath, FileFormat.PDF);
-
-        return pdfPath;
-    }
-
     public static String convertExcelToHtml(String excelPath, Integer shtIx, String htmlPath)  {
         Workbook workbook = new Workbook();
         workbook.loadFromFile(excelPath);
@@ -502,34 +448,6 @@ public class Utils {
         options.setImageEmbedded(true);
         sheet.saveToHtml(htmlPath, options);
         return htmlPath;
-    }
-    public static String zipFiles(String zipPath, String tpltSavePath, List<String> expFilePaths) throws IOException {
-        ZipOutputStream zout = new ZipOutputStream(new FileOutputStream(new File(zipPath)));
-        if(!tpltSavePath.isEmpty()) {
-            //ZipEntry zltp = new ZipEntry("00." + Paths.get(tpltSavePath).getFileName().toString());
-            ZipEntry zltp = new ZipEntry("_Transmittal." + FilenameUtils.getExtension(tpltSavePath));
-            zout.putNextEntry(zltp);
-            byte[] zdtp = Files.readAllBytes(Paths.get(tpltSavePath));
-            zout.write(zdtp, 0, zdtp.length);
-            zout.closeEntry();
-        }
-
-        for (String expFilePath : expFilePaths) {
-            String fileName = Paths.get(expFilePath).getFileName().toString();
-            fileName = fileName.replace("[@SLASH]", "/");
-            ZipEntry zlin = new ZipEntry(fileName);
-
-            zout.putNextEntry(zlin);
-            byte[] zdln = Files.readAllBytes(Paths.get(expFilePath));
-            zout.write(zdln, 0, zdln.length);
-            zout.closeEntry();
-        }
-        zout.close();
-        return zipPath;
-    }
-    public static String nameDocument(IDocument document) throws Exception {
-        IDocumentPart partDocument = document.getPartDocument(document.getDefaultRepresentation() , 0);
-        return partDocument.getFilename();
     }
     public static String exportDocument(IDocument document, String exportPath, String fileName) throws IOException {
         String rtrn ="";
@@ -552,18 +470,6 @@ public class Utils {
         }
         return rtrn;
     }
-    public static INode getNode(IFolder fold, String fldn){
-        List<INode> nodesByName = fold.getNodesByName(fldn);
-        return fold.getNodeByID(nodesByName.get(0).getID());
-    }
-    public static String getCellValue(Sheet sheet, String refn){
-
-        CellReference cr = new CellReference(refn);
-        Row row = sheet.getRow(cr.getRow());
-        Cell rtrn = row.getCell(cr.getCol());
-        return rtrn.getRichStringCellValue().getString();
-    }
-
     public static String updateCell(String str, JSONObject bookmarks){
         StringBuffer rtr1 = new StringBuffer();
         String tmp = str + "";
@@ -581,31 +487,6 @@ public class Utils {
         tmp = rtr1.toString();
 
         return tmp;
-    }
-    public static void saveFileContent(String path, String cntn) throws IOException {
-        FileOutputStream outputStream = new FileOutputStream(path);
-        byte[] bctn = cntn.getBytes();
-        outputStream.write(bctn);
-
-        outputStream.close();
-    }
-    public static JSONObject getRowGroups(Sheet sheet, String prfx, Integer colIx)  {
-        JSONObject rtrn = new JSONObject();
-        for (Row row : sheet) {
-            Cell cll1 = row.getCell(colIx);
-            if(cll1 == null){continue;}
-
-            String cval = cll1.getRichStringCellValue().getString();
-            if(cval.isEmpty()){continue;}
-
-            if(!cval.startsWith("[&" + prfx + ".")
-                    || !cval.endsWith("&]")){continue;}
-
-            String znam = cval.substring(("[&" + prfx + ".").length(), cval.length() - ("]&").length());
-            rtrn.put(znam, row);
-
-        }
-        return rtrn;
     }
     public static IQueryDlg findQueryDlgForQueryClass(IQueryClass queryClass) {
         IQueryDlg dlg = null;
@@ -668,5 +549,32 @@ public class Utils {
         } else {
             return null;
         }
+    }
+    public static List<IInformationObject> getMultiReviewProcesses(ProcessHelper helper, JSONObject projects) {
+        List<IInformationObject> rtrn = new ArrayList<>();
+        for(String prjn : projects.keySet()) {
+            StringBuilder builder = new StringBuilder();
+            builder.append("TYPE = '").append(Conf.ClassIDs.MultiReviewMain).append("'");
+            //builder.append(" AND WFL_TASK_STATUS IN (2,4,16)");
+            String whereClause = builder.toString();
+            log.info("Where Clause: " + whereClause);
+
+            IInformationObject[] list = helper.createQuery(new String[]{Conf.Databases.Process}, whereClause, "", 0, false);
+
+            for (IInformationObject item : list) {
+                if (!hasDescriptor(item, Conf.Descriptors.ProjectNo)) {
+                    continue;
+                }
+                //String prjn = item.getDescriptorValue(Conf.Descriptors.ProjectNo, String.class);
+                prjn = (prjn == null ? "" : prjn);
+
+                if (prjn.isEmpty()) {
+                    continue;
+                }
+                //if(rtrn.has(prjn)){continue;}
+                rtrn.add(item);
+            }
+        }
+        return rtrn;
     }
 }
