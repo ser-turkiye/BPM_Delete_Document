@@ -13,8 +13,6 @@ import java.util.List;
 public class DeleteMultiReviewProcess extends UnifiedAgent {
     private Logger log = LogManager.getLogger();
     private ProcessHelper helper;
-    JSONObject projects = new JSONObject();
-    List<IInformationObject> multiprcss = new ArrayList<>();
     @Override
     protected Object execute() {
         if (getBpm() == null)
@@ -27,8 +25,8 @@ public class DeleteMultiReviewProcess extends UnifiedAgent {
         try {
             helper = new ProcessHelper(getSes());
             log.info("-- Delete MultiReview Process Agent Started -----");
-            projects = Utils.getProjectWorkspaces(helper);
-            multiprcss = Utils.getMultiReviewProcesses(helper,projects);
+            //projects = Utils.getProjectWorkspaces(helper);
+            IInformationObject[] multiprcss = Utils.getMultiReviewProcesses(helper);
             for(IInformationObject info : multiprcss){
                 IProcessInstance pi = ((ITask) info).getProcessInstance();
                 log.info("--- Delete MultiReview Process ID -----" + pi.getID());

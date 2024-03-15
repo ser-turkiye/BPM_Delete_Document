@@ -7,7 +7,6 @@ import com.ser.foldermanager.IElement;
 import com.ser.foldermanager.IElements;
 import com.ser.foldermanager.IFolder;
 import com.ser.foldermanager.INode;
-import com.spire.xls.FileFormat;
 import com.spire.xls.Workbook;
 import com.spire.xls.Worksheet;
 import com.spire.xls.core.spreadsheet.HTMLOptions;
@@ -19,13 +18,10 @@ import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeBodyPart;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.internet.MimeMultipart;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.poi.common.usermodel.HyperlinkType;
 import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.ss.util.CellReference;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.json.JSONObject;
 
@@ -35,8 +31,6 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 public class Utils {
 
@@ -550,7 +544,17 @@ public class Utils {
             return null;
         }
     }
-    public static List<IInformationObject> getMultiReviewProcesses(ProcessHelper helper, JSONObject projects) {
+    public static IInformationObject[] getMultiReviewProcesses(ProcessHelper helper) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("TYPE = '").append(Conf.ClassIDs.MultiReviewMain).append("'");
+        //builder.append(" AND WFL_TASK_STATUS IN (2,4,16)");
+        String whereClause = builder.toString();
+        log.info("Where Clause: " + whereClause);
+        IInformationObject[] list = helper.createQuery(new String[]{Conf.Databases.Process}, whereClause, "", 0, false);
+        //if(list.length < 1) {return null;}
+        return list;
+    }
+    public static List<IInformationObject> getMultiReviewProcesses1(ProcessHelper helper, JSONObject projects) {
         List<IInformationObject> rtrn = new ArrayList<>();
         for(String prjn : projects.keySet()) {
             StringBuilder builder = new StringBuilder();
