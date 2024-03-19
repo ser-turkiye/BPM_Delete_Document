@@ -27,6 +27,7 @@ public class Conf {
         public static final String ProjectCard= "PRJ_FOLDER";
         public static final String EngineeringDocument= "PRJ_DOC";
         public static final String EngineeringCRS = "PRJ_CRS";
+        public static final String EngineeringCopy = "D_EngCopy";
         public static final String BPM = "BPM";
         public static final String Process = "BPM";
 
@@ -60,6 +61,8 @@ public class Conf {
         public static final String SubDocumentID = "SUBDOCUMENTREFERENCE";
 
         public static final String PrjCardCode = "CCMPRJCARD_CODE";
+        public static final String PrjDocNumber = "CCMPRJDOCNUMBER";
+        public static final String PrjDocRev = "CCMPRJDOCREVISION";
         public static final String PRJCard_status = "CCMPRJCARD_STATUS";
         public static final String MainTaskReference = "MAINTASKREFERENCE";
         public static final String ObjectNumberExternal = "OBJECTNUMBER2";

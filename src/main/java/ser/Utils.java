@@ -554,6 +554,22 @@ public class Utils {
         //if(list.length < 1) {return null;}
         return list;
     }
+    public static IInformationObject[] getEngineeringCopyDocuments(ProcessHelper helper, String prjn, String docNumber, String docRev) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("TYPE = '").append(Conf.ClassIDs.EngineeringCopy).append("'")
+                .append(" AND ")
+                .append(Conf.DescriptorLiterals.PrjCardCode).append(" = '").append(prjn).append("'")
+                .append(" AND ")
+                .append(Conf.DescriptorLiterals.PrjDocNumber).append(" = '").append(docNumber).append("'")
+                .append(" AND ")
+                .append(Conf.DescriptorLiterals.PrjDocRev).append(" = '").append(docRev).append("'");
+        //builder.append(" AND WFL_TASK_STATUS IN (2,4,16)");
+        String whereClause = builder.toString();
+        log.info("Where Clause: " + whereClause);
+        IInformationObject[] list = helper.createQuery(new String[]{Conf.Databases.EngineeringCopy}, whereClause, "", 0, false);
+        //if(list.length < 1) {return null;}
+        return list;
+    }
     public static List<IInformationObject> getMultiReviewProcesses1(ProcessHelper helper, JSONObject projects) {
         List<IInformationObject> rtrn = new ArrayList<>();
         for(String prjn : projects.keySet()) {
