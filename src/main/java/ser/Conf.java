@@ -73,6 +73,7 @@ public class Conf {
         public static final String ProjectCard = "32e74338-d268-484d-99b0-f90187240549";
         public static final String InvolveParty = "fad93754-b7c2-4a12-b40e-8afae3b31e3d";
         public static final String EngineeringDocument = "3b3078f8-c0d0-4830-b963-88bebe1c1462";
+        public static final String GeneralDocument = "10cb596b-a429-4ca2-8384-11fa2dc9f299";
         public static final String DCCExcelSheet = "3009009e-e563-400e-8fdb-e0382ca0b011";
         public static final String ReviewSubProcess = "629a28c4-6c36-44d0-90f7-1e5802f038e8";
         public static final String OutOfOfficeProcess = "e1d1b0a6-488a-476a-991f-78979446aaa8";
@@ -82,6 +83,7 @@ public class Conf {
         public static final String Template = "b9cf43d1-a4d3-482f-9806-44ae64c6139d";
         public static final String SubProcess = "629a28c4-6c36-44d0-90f7-1e5802f038e8";
         public static final String ReviewMain = "69d42aaf-6978-4b5a-8178-88a78f4b3158";
+        public static final String DeleteProcess = "8c155b16-4e35-4f06-ad4d-6ee844537e09";
         public static final String MultiReviewMain = "1dc85f54-f737-4867-b538-71c6277da8f0";
         public static final String ProjectWorkspace = "32e74338-d268-484d-99b0-f90187240549";
         public static final String ExternalProjectUsers = "f59d2677-6fb5-4651-9666-0e555b45dc36";

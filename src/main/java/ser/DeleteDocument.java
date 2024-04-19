@@ -3,11 +3,13 @@ package ser;
 import com.ser.blueline.*;
 import com.ser.blueline.bpm.IProcessInstance;
 import com.ser.blueline.bpm.ITask;
+import com.ser.blueline.metaDataComponents.IArchiveClass;
 import de.ser.doxis4.agentserver.UnifiedAgent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -22,6 +24,7 @@ public class DeleteDocument extends UnifiedAgent {
     private String notes;
     String prjn = "";
     List<String> docs = new ArrayList<>();
+    List<String> others = new ArrayList<>();
     @Override
     protected Object execute() {
         helper = new ProcessHelper(getSes());
@@ -52,7 +55,7 @@ public class DeleteDocument extends UnifiedAgent {
                 Utils.bpm = getBpm();
                 Utils.server = Utils.session.getDocumentServer();
                 Utils.loadDirectory(Conf.Paths.MainPath);
-
+                this.helper = new ProcessHelper(Utils.session);
                 //helper = new ProcessHelper(getSes());
                 log.info("----DeleteDocument Process Agent Started -----:" + mainTask.getID());
                 notes = mainTask.getDescriptorValue("Notes");
@@ -72,8 +75,11 @@ public class DeleteDocument extends UnifiedAgent {
                     //this.deleteDocument(xdoc);
                     this.deleteDocument((IDocument) xdoc);
                 }
+                //mainTask.setDescriptorValue("ObjectAnnotation",String.join("\n",docs));
                 //mainTask.commit();
+
                 String mtpn = "DOCUMENT_DELETION_MAIL";
+                String mtpn1 = "DELETED_DOCUMENTS_TEMPLATE";
 
                 projects = Utils.getProjectWorkspaces(helper);
                 IDocument mtpl = null;
@@ -86,9 +92,34 @@ public class DeleteDocument extends UnifiedAgent {
                     mtpl = dtpl;
                     break;
                 }
+                IDocument mtpl1 = null;
+                for (String prjn : projects.keySet()) {
+                    IInformationObject prjt = (IInformationObject) projects.get(prjn);
+                    IDocument dtpl1 = Utils.getTemplateDocument(prjt, mtpn1);
+                    if (dtpl1 == null) {
+                        continue;
+                    }
+                    mtpl1 = dtpl1;
+                    break;
+                }
+
+                JSONObject dbks1 = new JSONObject();
+                dbks1.put("docs", String.join(", ", docs));
+                if (mtpl1 == null) {
+                    log.info("Template-Document [ " + mtpn1 + " ] not found.");
+                }
+                else {
+                    String tplMailPath1 = Utils.exportDocument(mtpl1, Conf.DeleteProcess.MainPath, mtpn1 + "[" + uniqueId + "]");
+                    String mailExcelPath1 = Utils.saveDocReviewExcel(tplMailPath1, 0,
+                            Conf.DeleteProcess.MainPath + "/" + mtpn1 + "[" + uniqueId + "].xlsx", dbks1
+                    );
+                    //String mailHtmlPath1 = Utils.convertExcelToHtml(mailExcelPath1,Conf.DeleteProcessSheetIndex.Deleted,Conf.DeleteProcess.MainPath + "/" + mtpn1 + "[" + uniqueId + "].html");
+
+                    this.archiveNewTemplate(mailExcelPath1);
+                }
+
                 JSONObject dbks = new JSONObject();
                 dbks.put("docs", String.join(", ", docs));
-
                 if (mtpl == null) {
                     log.info("Template-Document [ " + mtpn + " ] not found.");
                     //throw new Exception("Template-Document [ " + mtpn + " ] not found.");
@@ -108,7 +139,8 @@ public class DeleteDocument extends UnifiedAgent {
                         mails.add(umail);
                         JSONObject mail = new JSONObject();
                         mail.put("To", String.join(";", mails));
-                        mail.put("Subject", "Deleted Documents");
+                        //mail.put("Subject", "Deleted Documents");
+                        mail.put("Subject", "Doc.(s) Deleted");
                         mail.put("BodyHTMLFile", mailHtmlPath);
                         Utils.sendHTMLMail(mail, null);
                     } else {
@@ -132,6 +164,7 @@ public class DeleteDocument extends UnifiedAgent {
         log.info("Deleting Document :" + mainDocument.getID());
         docs.add((docCode == null ? "No Document Number" : docCode));
         try {
+            List<ILink> mainAttachLinks = getEventTask().getProcessInstance().getLoadedInformationObjectLinks().getLinks();
             ILink[] links = getDocumentServer().getReferencedRelationships(getSes(),mainDocument,false,false);
             ILink[] links2 = getDocumentServer().getReferencingRelationships(getSes(),mainDocument.getID(),false);
             for (ILink link : links) {
@@ -139,6 +172,8 @@ public class DeleteDocument extends UnifiedAgent {
                 String docInfo = xdoc.getDisplayName();
                 log.info("Delete link doc : " + xdoc.getID());
                 getDocumentServer().deleteInformationObject(getSes(),xdoc);
+                others.add(docInfo);
+                //Utils.server.removeRelationship(Utils.session, link);
                 log.info("deleted link doc");
             }
             for (ILink link2 : links2) {
@@ -146,8 +181,17 @@ public class DeleteDocument extends UnifiedAgent {
                 String docClassID = xdoc.getClassID();
                 InformationObjectType objType = xdoc.getInformationObjectType();
                 log.info("Delete usage object : " + xdoc.getID() + " /// type : " + objType);
+                if(Objects.equals(docClassID, Conf.ClassIDs.ReviewMain)){
+                    IInformationObject[] sprs = Utils.getSubProcessies(mainDocument.getID(),this.helper);
+                    for(IInformationObject sinf : sprs){
+                        getDocumentServer().deleteInformationObject(getSes(),sinf);
+                        others.add(sinf.getDisplayName());
+                    }
+                }
                 if(objType != InformationObjectType.PROCESS_INSTANCE){continue;}
-                //if(Objects.equals(docClassID, Conf.ClassIDs.ProjectCard)){continue;}
+                if(Objects.equals(docClassID, Conf.ClassIDs.ProjectCard)){continue;}
+                if(Objects.equals(docClassID, Conf.ClassIDs.DeleteProcess)){continue;}
+                others.add(xdoc.getDisplayName());
                 getDocumentServer().deleteInformationObject(getSes(),xdoc);
                 log.info("deleted usage object");
                 //mainTask.setDescriptorValue("Notes",(Objects.equals(notes, "") ? "Deleted InformationObject :" + docInfo : notes + "\n" + "Deleted InformationObject :" + docInfo));
@@ -159,44 +203,30 @@ public class DeleteDocument extends UnifiedAgent {
                     infoCopyDoc.commit();
                 }
             }
-            getDocumentServer().deleteDocument(getSes(),mainDocument);
+            getDocumentServer().deleteInformationObject(getSes(),mainDocument);
             log.info("Deleted Document");
         } catch (Exception e) {
             throw new Exception("Exeption Caught..deleteDocument: " + e);
         }
     }
-    private void deleteDocumentOLD(IInformationObject mainInfo) throws Exception {
-        mainDocument = (IDocument) mainInfo;
-        String apprCode = mainDocument.getDescriptorValue(Conf.Descriptors.DocNumber);
-        log.info("Deleting Document :" + mainDocument.getID());
-        docs.add((apprCode == null ? "No Document Number" : apprCode));
-        try {
-            ILink[] links = getDocumentServer().getReferencedRelationships(getSes(),mainDocument,false,false);
-            ILink[] links2 = getDocumentServer().getReferencingRelationships(getSes(),mainDocument.getID(),false);
-            for (ILink link : links) {
-                IInformationObject xdoc = link.getTargetInformationObject();
-                String docInfo = xdoc.getDisplayName();
-                log.info("Delete link doc : " + xdoc.getID());
-                getDocumentServer().deleteInformationObject(getSes(),xdoc);
-                log.info("deleted link doc");
-                //mainTask.setDescriptorValue("Notes",(Objects.equals(notes, "") ? "Deleted InformationObject :" + docInfo : notes + "\n" + "Deleted InformationObject :" + docInfo));
-            }
-            for (ILink link2 : links2) {
-                IInformationObject xdoc = link2.getSourceInformationObject();
-                String docClassID = xdoc.getClassID();
-                InformationObjectType objType = xdoc.getInformationObjectType();
-                log.info("Delete usage object : " + xdoc.getID() + " /// type : " + objType);
-                if(objType != InformationObjectType.PROCESS_INSTANCE){continue;}
-                //if(Objects.equals(docClassID, Conf.ClassIDs.ProjectCard)){continue;}
-                getDocumentServer().deleteInformationObject(getSes(),xdoc);
-                log.info("deleted usage object");
-                //mainTask.setDescriptorValue("Notes",(Objects.equals(notes, "") ? "Deleted InformationObject :" + docInfo : notes + "\n" + "Deleted InformationObject :" + docInfo));
-            }
-            getDocumentServer().deleteDocument(getSes(),mainDocument);
-            //mainTask.setDescriptorValue("Notes",(Objects.equals(notes, "") ? "Deleted InformationObject :" + mainDocInfo : notes + "\n" + "Deleted InformationObject :" + mainDocInfo));
-            log.info("Deleted Main Document");
-        } catch (Exception e) {
-            throw new Exception("Exeption Caught..deleteDocument: " + e);
-        }
+
+    private void archiveNewTemplate(String tpltSavePath) throws Exception {
+        IDocument doc = newFileToDocumentClass(tpltSavePath, Conf.ClassIDs.GeneralDocument);
+        getEventTask().getProcessInstance().getLoadedInformationObjectLinks().addInformationObject(doc.getID());
+        getEventTask().commit();
+    }
+    public IDocument newFileToDocumentClass(String filePath, String archiveClassID) throws Exception {
+        IArchiveClass cls = Utils.server.getArchiveClass(archiveClassID, Utils.session);
+        if (cls == null) cls = Utils.server.getArchiveClassByName(Utils.session, archiveClassID);
+        if (cls == null) throw new Exception("Document Class: " + archiveClassID + " not found");
+
+        String dbName = Utils.session.getDatabase(cls.getDefaultDatabaseID()).getDatabaseName();
+        IDocument doc = Utils.server.getClassFactory().getDocumentInstance(dbName, cls.getID(), "0000", Utils.session);
+
+        File file = new File(filePath);
+        IRepresentation representation = doc.addRepresentation(".pdf" , "Signed document");
+        IDocumentPart newDocumentPart = representation.addPartDocument(filePath);
+        doc.commit();
+        return doc;
     }
 }

@@ -570,6 +570,16 @@ public class Utils {
         //if(list.length < 1) {return null;}
         return list;
     }
+    public static IInformationObject[] getSubProcessies(String mainDocId, ProcessHelper helper)  {
+        StringBuilder builder = new StringBuilder();
+        builder.append("TYPE = '").append(Conf.ClassIDs.SubProcess).append("'")
+                .append(" AND ")
+                .append(Conf.DescriptorLiterals.MainTaskReference).append(" = '").append(mainDocId).append("'");
+        String whereClause = builder.toString();
+        log.info("Where Clause: " + whereClause);
+        IInformationObject[] list = helper.createQuery(new String[]{Conf.Databases.Process}, whereClause, "", 0, false);
+        return list;
+    }
     public static List<IInformationObject> getMultiReviewProcesses1(ProcessHelper helper, JSONObject projects) {
         List<IInformationObject> rtrn = new ArrayList<>();
         for(String prjn : projects.keySet()) {
@@ -597,4 +607,5 @@ public class Utils {
         }
         return rtrn;
     }
+
 }

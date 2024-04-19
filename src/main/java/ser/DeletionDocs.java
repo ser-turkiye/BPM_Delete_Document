@@ -90,7 +90,8 @@ public class DeletionDocs extends UnifiedAgent {
 
                 JSONObject mail = new JSONObject();
                 mail.put("To", String.join(";", mails));
-                mail.put("Subject", "New Documents Deletion Request");
+                //mail.put("Subject", "New Documents Deletion Request");
+                mail.put("Subject", "Doc.(s) Deletion Request");
                 mail.put("BodyHTMLFile", mailHtmlPath);
                 Utils.sendHTMLMail(mail, mcfg);
             }
