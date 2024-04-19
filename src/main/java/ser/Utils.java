@@ -425,6 +425,8 @@ public class Utils {
                             link.setAddress(lurl);
                             tcll.setHyperlink(link);
                         }
+                    }else{
+                        tcll.setCellValue("");
                     }
                 }
             }
@@ -469,16 +471,21 @@ public class Utils {
         String tmp = str + "";
         Pattern ptr1 = Pattern.compile( "\\{([\\w\\.]+)\\}" );
         Matcher mtc1 = ptr1.matcher(tmp);
+        String isMatched = "match";
         while(mtc1.find()) {
             String mk = mtc1.group(1);
             String mv = "";
             if(bookmarks.has(mk)){
                 mv = bookmarks.getString(mk);
+            }else{
+                mv = "";
+                isMatched = "nomatch";
             }
             mtc1.appendReplacement(rtr1,  mv);
         }
         mtc1.appendTail(rtr1);
         tmp = rtr1.toString();
+        tmp = (!isMatched.equals("nomatch") ? tmp : "");
 
         return tmp;
     }

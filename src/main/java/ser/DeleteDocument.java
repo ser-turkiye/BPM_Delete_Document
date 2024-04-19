@@ -10,10 +10,9 @@ import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 public class DeleteDocument extends UnifiedAgent {
     private Logger log = LogManager.getLogger();
@@ -63,18 +62,6 @@ public class DeleteDocument extends UnifiedAgent {
                     log.error("Task is locked.." + mainTask.getID() + "..restarting agent");
                     return resultRestart("Restarting Agent");
                 }
-
-                IInformationObjectLinks links = mainTask.getProcessInstance().getLoadedInformationObjectLinks();
-                for (ILink link : links.getLinks()) {
-                    IInformationObject xdoc = link.getTargetInformationObject();
-                    String taskName = xdoc.getDescriptorValue("ccmPrjDocWFTaskName");
-                    if (!xdoc.getClassID().equals(Conf.ClassIDs.EngineeringDocument)) {
-                        continue;
-                    }
-                    prjn = xdoc.getDescriptorValue(Conf.Descriptors.ProjectNo, String.class);
-                    //this.deleteDocument(xdoc);
-                    this.deleteDocument((IDocument) xdoc);
-                }
                 //mainTask.setDescriptorValue("ObjectAnnotation",String.join("\n",docs));
                 //mainTask.commit();
 
@@ -118,7 +105,68 @@ public class DeleteDocument extends UnifiedAgent {
                     this.archiveNewTemplate(mailExcelPath1);
                 }
 
+
+                int cnt = 0;
                 JSONObject dbks = new JSONObject();
+                this.helper = new ProcessHelper(Utils.session);
+                JSONObject mcfg = Utils.getMailConfig();
+                String prjn = "",  mdno = "", mdrn = "", mdnm = "";
+                IInformationObjectLinks links = mainTask.getProcessInstance().getLoadedInformationObjectLinks();
+                for (ILink link : links.getLinks()) {
+                    IInformationObject xdoc = link.getTargetInformationObject();
+                    String taskName = xdoc.getDescriptorValue("ccmPrjDocWFTaskName");
+                    if (!xdoc.getClassID().equals(Conf.ClassIDs.EngineeringDocument)) {
+                        continue;
+                    }
+                    prjn = xdoc.getDescriptorValue(Conf.Descriptors.ProjectNo, String.class);
+                    //this.deleteDocument(xdoc);
+                    if(xdoc != null &&  Utils.hasDescriptor((IInformationObject) xdoc, Conf.Descriptors.ProjectNo)){
+                        prjn = xdoc.getDescriptorValue(Conf.Descriptors.ProjectNo, String.class);
+                    }
+                    if(xdoc != null &&  Utils.hasDescriptor((IInformationObject) xdoc, Conf.Descriptors.DocNumber)){
+                        mdno = xdoc.getDescriptorValue(Conf.Descriptors.DocNumber, String.class);
+                    }
+                    if(xdoc != null &&  Utils.hasDescriptor((IInformationObject) xdoc, Conf.Descriptors.Revision)){
+                        mdrn = xdoc.getDescriptorValue(Conf.Descriptors.Revision, String.class);
+                    }
+                    if(xdoc != null &&  Utils.hasDescriptor((IInformationObject) xdoc, Conf.Descriptors.Name)){
+                        mdnm = xdoc.getDescriptorValue(Conf.Descriptors.Name, String.class);
+                    }
+                    cnt++;
+
+                    Date tbgn = null, tend = new Date();
+                    if(mainTask.getReadyDate() != null){
+                        tbgn = mainTask.getReadyDate();
+                    }
+                    long durd  = 0L;
+                    double durh  = 0.0;
+                    if(tend != null && tbgn != null) {
+                        long diff = (tend.getTime() > tbgn.getTime() ? tend.getTime() - tbgn.getTime() : tbgn.getTime() - tend.getTime());
+                        durd = TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS);
+                        durh = ((TimeUnit.MINUTES.convert(diff, TimeUnit.MILLISECONDS) - (durd * 24 * 60)) * 100 / 60) / 100d;
+                    }
+                    String rcvf = "", rcvo = "";
+                    if(mainTask.getPreviousWorkbasket() != null){
+                        rcvf = mainTask.getPreviousWorkbasket().getFullName();
+                    }
+                    if(tbgn != null){
+                        rcvo = (new SimpleDateFormat("dd-MM-yyyy HH:mm")).format(tbgn);
+                    }
+
+                    dbks.put("DocNo" + (cnt > 9 ? cnt : "0" + cnt), (mdno != null  ? mdno : ""));
+                    dbks.put("RevNo" + (cnt > 9 ? cnt : "0" + cnt), (mdrn != null  ? mdrn : ""));
+                    dbks.put("Title" + (cnt > 9 ? cnt : "0" + cnt), mainDocument.getDisplayName());
+                    dbks.put("Task" + (cnt > 9 ? cnt : "0" + cnt), mainTask.getName());
+                    dbks.put("DocName" + (cnt > 9 ? cnt : "0" + cnt), (mdnm != null  ? mdnm : ""));
+                    dbks.put("ReceivedOn" + (cnt > 9 ? cnt : "0" + cnt), (rcvo != null ? rcvo : ""));
+                    dbks.put("ProcessTitle" + (cnt > 9 ? cnt : "0" + cnt), (processInstance != null ? processInstance.getDisplayName() : ""));
+                    dbks.put("ProjectNo" + (cnt > 9 ? cnt : "0" + cnt), (prjn != null  ? prjn : ""));
+                    dbks.put("DoxisLink" + (cnt > 9 ? cnt : "0" + cnt), mcfg.getString("webBase") + helper.getTaskURL(mainTask.getID()));
+
+                    this.deleteDocument((IDocument) xdoc);
+                }
+
+                //JSONObject dbks = new JSONObject();
                 dbks.put("docs", String.join(", ", docs));
                 if (mtpl == null) {
                     log.info("Template-Document [ " + mtpn + " ] not found.");
