@@ -173,11 +173,11 @@ public class DeleteDocument extends UnifiedAgent {
                     //throw new Exception("Template-Document [ " + mtpn + " ] not found.");
                 } else {
                     String tplMailPath = Utils.exportDocument(mtpl, Conf.DeleteProcess.MainPath, mtpn + "[" + uniqueId + "]");
-                    String mailExcelPath = Utils.saveDocReviewExcel(tplMailPath, Conf.DeleteProcessSheetIndex.Deleted,
+                    String mailExcelPath = Utils.saveDocReviewExcel(tplMailPath, 0,
                             Conf.DeleteProcess.MainPath + "/" + mtpn + "[" + uniqueId + "].xlsx", dbks
                     );
                     String mailHtmlPath = Utils.convertExcelToHtml(mailExcelPath,
-                            Conf.DeleteProcessSheetIndex.Deleted,
+                            0,
                             Conf.DeleteProcess.MainPath + "/" + mtpn + "[" + uniqueId + "].html");
 
                     String umail = processOwner.getEMailAddress();
