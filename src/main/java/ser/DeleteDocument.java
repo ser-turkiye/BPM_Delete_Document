@@ -211,43 +211,51 @@ public class DeleteDocument extends UnifiedAgent {
         String revCode = mainDocument.getDescriptorValue(Conf.Descriptors.Revision);
         log.info("Deleting Document :" + mainDocument.getID());
         docs.add((docCode == null ? "No Document Number" : docCode));
+
         try {
-            List<ILink> mainAttachLinks = getEventTask().getProcessInstance().getLoadedInformationObjectLinks().getLinks();
-            ILink[] links = getDocumentServer().getReferencedRelationships(getSes(),mainDocument,false,false);
-            ILink[] links2 = getDocumentServer().getReferencingRelationships(getSes(),mainDocument.getID(),false);
-            for (ILink link : links) {
-                IInformationObject xdoc = link.getTargetInformationObject();
-                String docInfo = xdoc.getDisplayName();
-                log.info("Delete link doc : " + xdoc.getID());
-                getDocumentServer().deleteInformationObject(getSes(),xdoc);
-                others.add(docInfo);
-                //Utils.server.removeRelationship(Utils.session, link);
-                log.info("deleted link doc");
-            }
-            for (ILink link2 : links2) {
-                IInformationObject xdoc = link2.getSourceInformationObject();
-                String docClassID = xdoc.getClassID();
-                InformationObjectType objType = xdoc.getInformationObjectType();
-                log.info("Delete usage object : " + xdoc.getID() + " /// type : " + objType);
-                if(Objects.equals(docClassID, Conf.ClassIDs.ReviewMain)){
-                    IInformationObject[] sprs = Utils.getSubProcessies(mainDocument.getID(),this.helper);
-                    for(IInformationObject sinf : sprs){
-                        getDocumentServer().deleteInformationObject(getSes(),sinf);
-                        others.add(sinf.getDisplayName());
-                    }
+            if(!Objects.equals(mainDocument.getClassID(), Conf.ClassIDs.EngineeringCopy)) {
+                List<ILink> mainAttachLinks = getEventTask().getProcessInstance().getLoadedInformationObjectLinks().getLinks();
+                ILink[] links = getDocumentServer().getReferencedRelationships(getSes(), mainDocument, false, false);
+                ILink[] links2 = getDocumentServer().getReferencingRelationships(getSes(), mainDocument.getID(), false);
+                for (ILink link : links) {
+                    IInformationObject xdoc = link.getTargetInformationObject();
+                    String docInfo = xdoc.getDisplayName();
+                    log.info("Delete link doc : " + xdoc.getID());
+                    getDocumentServer().deleteInformationObject(getSes(), xdoc);
+                    others.add(docInfo);
+                    //Utils.server.removeRelationship(Utils.session, link);
+                    log.info("deleted link doc");
                 }
-                if(objType != InformationObjectType.PROCESS_INSTANCE){continue;}
-                if(Objects.equals(docClassID, Conf.ClassIDs.ProjectCard)){continue;}
-                if(Objects.equals(docClassID, Conf.ClassIDs.DeleteProcess)){continue;}
-                others.add(xdoc.getDisplayName());
-                getDocumentServer().deleteInformationObject(getSes(),xdoc);
-                log.info("deleted usage object");
-                //mainTask.setDescriptorValue("Notes",(Objects.equals(notes, "") ? "Deleted InformationObject :" + docInfo : notes + "\n" + "Deleted InformationObject :" + docInfo));
-            }
-            if(!Objects.equals(mainDocument.getClassID(), Conf.ClassIDs.EngineeringCopy)){
-                IInformationObject[] infoEngCopyDocs = Utils.getEngineeringCopyDocuments(helper,prjCode,docCode,revCode);
-                for(IInformationObject infoCopyDoc : infoEngCopyDocs){
-                    infoCopyDoc.setDescriptorValue("ObjectName","DELETED");
+                for (ILink link2 : links2) {
+                    IInformationObject xdoc = link2.getSourceInformationObject();
+                    String docClassID = xdoc.getClassID();
+                    InformationObjectType objType = xdoc.getInformationObjectType();
+                    log.info("Delete usage object : " + xdoc.getID() + " /// type : " + objType);
+                    if (Objects.equals(docClassID, Conf.ClassIDs.ReviewMain)) {
+                        IInformationObject[] sprs = Utils.getSubProcessies(mainDocument.getID(), this.helper);
+                        for (IInformationObject sinf : sprs) {
+                            getDocumentServer().deleteInformationObject(getSes(), sinf);
+                            others.add(sinf.getDisplayName());
+                        }
+                    }
+                    if (objType != InformationObjectType.PROCESS_INSTANCE) {
+                        continue;
+                    }
+                    if (Objects.equals(docClassID, Conf.ClassIDs.ProjectCard)) {
+                        continue;
+                    }
+                    if (Objects.equals(docClassID, Conf.ClassIDs.DeleteProcess)) {
+                        continue;
+                    }
+                    others.add(xdoc.getDisplayName());
+                    getDocumentServer().deleteInformationObject(getSes(), xdoc);
+                    log.info("deleted usage object");
+                    //mainTask.setDescriptorValue("Notes",(Objects.equals(notes, "") ? "Deleted InformationObject :" + docInfo : notes + "\n" + "Deleted InformationObject :" + docInfo));
+                }
+
+                IInformationObject[] infoEngCopyDocs = Utils.getEngineeringCopyDocuments(helper, prjCode, docCode, revCode);
+                for (IInformationObject infoCopyDoc : infoEngCopyDocs) {
+                    infoCopyDoc.setDescriptorValue("ObjectName", "DELETED");
                     infoCopyDoc.commit();
                 }
             }
