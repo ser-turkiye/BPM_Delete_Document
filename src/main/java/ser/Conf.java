@@ -16,6 +16,7 @@ public class Conf {
     }
     public static class DeleteProcess {
         public static final String MainPath = "C:/tmp2/bulk/deleteprocess";
+        public static final String TamplatePath = "C:/tmp2/templates/deleteprocess";
         public static final String WebBase = "http://localhost/webcube/";
     }
     public static class DeleteProcessSheetIndex {
