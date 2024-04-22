@@ -67,7 +67,7 @@ public class DeleteDocument extends UnifiedAgent {
                 //mainTask.setDescriptorValue("ObjectAnnotation",String.join("\n",docs));
                 //mainTask.commit();
 
-                String mtpn = "DOCUMENT_DELETION_MAIL";
+                String mtpn = "DOCUMENT_DELETED_MAIL";
                 String mtpn1 = "DELETED_DOCUMENTS_TEMPLATE";
 
                 projects = Utils.getProjectWorkspaces(helper);
