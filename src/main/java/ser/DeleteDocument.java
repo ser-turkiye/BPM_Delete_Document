@@ -97,6 +97,8 @@ public class DeleteDocument extends UnifiedAgent {
                 JSONObject dbks = new JSONObject();
                 this.helper = new ProcessHelper(Utils.session);
                 JSONObject mcfg = Utils.getMailConfig();
+                dbks.put("DoxisLink", mcfg.getString("webBase") + helper.getTaskURL(processInstance.getID()));
+
                 String prjn = "",  mdno = "", mdrn = "", mdnm = "";
                 IInformationObjectLinks links = mainTask.getProcessInstance().getLoadedInformationObjectLinks();
                 for (ILink link : links.getLinks()) {
