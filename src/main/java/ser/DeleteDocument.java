@@ -14,6 +14,8 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+import static ser.Utils.loadTableRows;
+
 public class DeleteDocument extends UnifiedAgent {
     private Logger log = LogManager.getLogger();
     private ProcessHelper helper;
@@ -146,7 +148,7 @@ public class DeleteDocument extends UnifiedAgent {
                     dbks.put("ReceivedOn" + cnt, (rcvo != null ? rcvo : ""));
                     dbks.put("ProcessTitle" + cnt, (processInstance != null ? processInstance.getDisplayName() : ""));
                     dbks.put("ProjectNo" + cnt, (prjn != null  ? prjn : ""));
-
+                    dbks.put("DoxisDocLink" + cnt, mcfg.get("webBase") + helper.getTaskURL(mainTask.getID()));
                     dbks.put("DoxisDocLink" + cnt + ".Text", "( Link )");
                     //dbks.put("DoxisLink" + (cnt > 9 ? cnt : "0" + cnt), mcfg.getString("webBase") + helper.getTaskURL(mainTask.getID()));
                     docs.add(xdoc.getDescriptorValue(Conf.Descriptors.DocNumber));
@@ -173,6 +175,9 @@ public class DeleteDocument extends UnifiedAgent {
                     //throw new Exception("Template-Document [ " + mtpn + " ] not found.");
                 } else {
                     String tplMailPath = Utils.exportDocument(mtpl, Conf.DeleteProcess.MainPath, mtpn + "[" + uniqueId + "]");
+
+                    loadTableRows(tplMailPath, 0, "Task", 0, docs.size());
+
                     String mailExcelPath = Utils.saveToExcel(tplMailPath, 0,
                             Conf.DeleteProcess.MainPath + "/" + mtpn + "[" + uniqueId + "].xlsx", dbks
                     );

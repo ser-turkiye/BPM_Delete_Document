@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import static ser.Utils.loadTableRows;
+
 public class DeletionDocs extends UnifiedAgent {
     private Logger log = LogManager.getLogger();
     IProcessInstance processInstance;
@@ -92,6 +94,7 @@ public class DeletionDocs extends UnifiedAgent {
                     if (!xdoc.getClassID().equals(Conf.ClassIDs.EngineeringDocument)) {
                         continue;
                     }
+                    cnt++;
                     prjn = xdoc.getDescriptorValue(Conf.Descriptors.ProjectNo, String.class);
                     //this.deleteDocument(xdoc);
                     if(xdoc != null &&  Utils.hasDescriptor((IInformationObject) xdoc, Conf.Descriptors.ProjectNo)){
@@ -135,15 +138,20 @@ public class DeletionDocs extends UnifiedAgent {
                     dbks.put("ReceivedOn" + cnt, (rcvo != null ? rcvo : ""));
                     dbks.put("ProcessTitle" + cnt, (processInstance != null ? processInstance.getDisplayName() : ""));
                     dbks.put("ProjectNo" + cnt, (prjn != null  ? prjn : ""));
+                    dbks.put("DoxisDocLink" + cnt, mcfg.get("webBase") + helper.getTaskURL(task.getID()));
                     dbks.put("DoxisDocLink" + cnt + ".Text", "( Link )");
                     //dbks.put("DoxisDocLink" + cnt, mcfg.getString("webBase") + helper.getTaskURL(task.getID()));
-                    cnt++;
+
 
                 }
 
                 dbks.put("docs", String.join(", ", docs));
 
+
                 String tplMailPath = Utils.exportDocument(mtpl, Conf.DeleteProcess.MainPath, mtpn + "[" + uniqueId + "]");
+
+                loadTableRows(tplMailPath, 0, "Task", 0, docs.size());
+
                 String mailExcelPath = Utils.saveToExcel(tplMailPath, 0,
                         Conf.DeleteProcess.MainPath + "/" + mtpn + "[" + uniqueId + "].xlsx", dbks
                 );

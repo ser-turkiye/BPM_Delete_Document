@@ -22,6 +22,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.poi.common.usermodel.HyperlinkType;
 import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.json.JSONObject;
 
@@ -487,6 +488,29 @@ public class Utils {
     public static String exportDocument(IDocument document, String exportPath, String fileName) throws IOException {
         String rtrn ="";
         IDocumentPart partDocument = document.getPartDocument(document.getDefaultRepresentation() , 0);
+
+        String fName = (!fileName.isEmpty() ? fileName : partDocument.getFilename());
+        fName = fName.replaceAll("[\\\\/:*?\"<>|]", "_");
+
+        try (InputStream inputStream = partDocument.getRawDataAsStream()) {
+            IFDE fde = partDocument.getFDE();
+            if (fde.getFDEType() == IFDE.FILE) {
+                rtrn = exportPath + "/" + fName + "." + ((IFileFDE) fde).getShortFormatDescription();
+
+                try (FileOutputStream fileOutputStream = new FileOutputStream(rtrn)){
+                    byte[] bytes = new byte[2048];
+                    int length;
+                    while ((length = inputStream.read(bytes)) > -1) {
+                        fileOutputStream.write(bytes, 0, length);
+                    }
+                }
+            }
+        }
+        return rtrn;
+    }
+    public static String exportDocumentOLD(IDocument document, String exportPath, String fileName) throws IOException {
+        String rtrn ="";
+        IDocumentPart partDocument = document.getPartDocument(document.getDefaultRepresentation() , 0);
         String fName = (!fileName.isEmpty() ? fileName : partDocument.getFilename());
         fName = fName.replaceAll("[\\\\/:*?\"<>|]", "_");
         try (InputStream inputStream = partDocument.getRawDataAsStream()) {
@@ -505,7 +529,150 @@ public class Utils {
         }
         return rtrn;
     }
+    public static Row getMasterRow(Sheet sheet, String prfx, Integer colIx)  {
+        for (Row row : sheet) {
+            Cell cll1 = row.getCell(colIx);
+            if(cll1 == null){continue;}
+
+            String cval = cll1.getRichStringCellValue().getString();
+            if(cval.isEmpty()){continue;}
+
+            if(!cval.equals("[*" + prfx + "*]") ){continue;}
+            return row;
+
+        }
+        return null;
+    }
+    public static Row copyRow(org.apache.poi.ss.usermodel.Workbook workbook, Sheet worksheet, int sourceRowNum, int destinationRowNum) {
+
+        Row newRow = worksheet.getRow(destinationRowNum);
+        Row sourceRow = worksheet.getRow(sourceRowNum);
+
+        if (newRow != null) {
+            worksheet.shiftRows(destinationRowNum, worksheet.getLastRowNum(), 1);
+        } else {
+            newRow = worksheet.createRow(destinationRowNum);
+        }
+
+        for (int i = 0; i < sourceRow.getLastCellNum(); i++) {
+
+            Cell oldCell = sourceRow.getCell(i);
+            Cell newCell = newRow.createCell(i);
+
+            if (oldCell == null) {
+                continue;
+            }
+
+
+            CellStyle newCellStyle = workbook.createCellStyle();
+            newCellStyle.cloneStyleFrom(oldCell.getCellStyle());
+            newCell.setCellStyle(newCellStyle);
+
+
+            if (oldCell.getCellComment() != null) {
+                newCell.setCellComment(oldCell.getCellComment());
+            }
+
+
+            if (oldCell.getHyperlink() != null) {
+                newCell.setHyperlink(oldCell.getHyperlink());
+            }
+
+
+            newCell.setCellType(oldCell.getCellType());
+
+
+            switch (oldCell.getCellType()) {
+                case BLANK:// Cell.CELL_TYPE_BLANK:
+                    newCell.setCellValue(oldCell.getStringCellValue());
+                    break;
+                case BOOLEAN:
+                    newCell.setCellValue(oldCell.getBooleanCellValue());
+                    break;
+                case FORMULA:
+                    newCell.setCellFormula(oldCell.getCellFormula());
+                    break;
+                case NUMERIC:
+                    newCell.setCellValue(oldCell.getNumericCellValue());
+                    break;
+                case STRING:
+                    newCell.setCellValue(oldCell.getRichStringCellValue());
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        for (int i = 0; i < worksheet.getNumMergedRegions(); i++) {
+            CellRangeAddress cellRangeAddress = worksheet.getMergedRegion(i);
+            if (cellRangeAddress.getFirstRow() == sourceRow.getRowNum()) {
+                CellRangeAddress newCellRangeAddress = new CellRangeAddress(newRow.getRowNum(),
+                        (newRow.getRowNum() + (cellRangeAddress.getLastRow() - cellRangeAddress.getFirstRow())),
+                        cellRangeAddress.getFirstColumn(), cellRangeAddress.getLastColumn());
+                worksheet.addMergedRegion(newCellRangeAddress);
+            }
+        }
+
+        return newRow;
+    }
+    public static void loadTableRows(String spth, Integer shtIx, String prfx, Integer colIx, Integer scpy) throws IOException {
+
+        FileInputStream tist = new FileInputStream(spth);
+        XSSFWorkbook twrb = new XSSFWorkbook(tist);
+
+        Sheet tsht = twrb.getSheetAt(shtIx);
+        Row mrow = Utils.getMasterRow(tsht, prfx, colIx);
+        if(mrow == null){return ;}
+
+        mrow.getCell(colIx).setBlank();
+
+        for(int i = 1; i<=scpy; i++){
+            Row nrow = copyRow(twrb, tsht, mrow.getRowNum(), mrow.getRowNum() + i);
+
+            for(Cell ncll : nrow) {
+                if (ncll.getCellType() != CellType.STRING) {
+                    continue;
+                }
+                if(ncll.getColumnIndex() == colIx){
+                    ncll.setBlank();
+                    continue;
+                }
+
+                String clvl = ncll.getRichStringCellValue().getString();
+                String clvv = clvl.replace("*", i+"");
+                if(!clvv.equals(clvl)){
+                    ncll.setCellValue(clvv);
+                }
+            }
+        }
+
+        mrow.setZeroHeight(true);
+        tsht.setColumnHidden(colIx, true);
+
+        FileOutputStream tost = new FileOutputStream(spth);
+        twrb.write(tost);
+        tost.close();
+
+    }
     public static String updateCell(String str, JSONObject bookmarks){
+        StringBuffer rtr1 = new StringBuffer();
+        String tmp = str + "";
+        Pattern ptr1 = Pattern.compile( "\\{([\\w\\.]+)\\}" );
+        Matcher mtc1 = ptr1.matcher(tmp);
+        while(mtc1.find()) {
+            String mk = mtc1.group(1);
+            String mv = "";
+            if(bookmarks.has(mk)){
+                mv = bookmarks.getString(mk);
+            }
+            mtc1.appendReplacement(rtr1,  mv);
+        }
+        mtc1.appendTail(rtr1);
+        tmp = rtr1.toString();
+
+        return tmp;
+    }
+    public static String updateCellOLD(String str, JSONObject bookmarks){
         StringBuffer rtr1 = new StringBuffer();
         String tmp = str + "";
         Pattern ptr1 = Pattern.compile( "\\{([\\w\\.]+)\\}" );
