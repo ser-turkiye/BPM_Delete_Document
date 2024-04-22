@@ -215,7 +215,7 @@ public class DeleteDocument extends UnifiedAgent {
         String docCode = mainDocument.getDescriptorValue(Conf.Descriptors.DocNumber);
         String revCode = mainDocument.getDescriptorValue(Conf.Descriptors.Revision);
         log.info("Deleting Document :" + mainDocument.getID());
-        docs.add((docCode == null ? "No Document Number" : docCode));
+        //docs.add((docCode == null ? "No Document Number" : docCode));
 
         try {
             if(!Objects.equals(mainDocument.getClassID(), Conf.ClassIDs.EngineeringCopy)) {
