@@ -92,18 +92,18 @@ public class DeleteDocument extends UnifiedAgent {
 
                 JSONObject dbks1 = new JSONObject();
                 dbks1.put("docs", String.join(", ", docs));
-//                if (mtpl1 == null) {
-//                    log.info("Template-Document [ " + mtpn1 + " ] not found.");
-//                }
-//                else {
-//                    String tplMailPath1 = Utils.exportDocument(mtpl1, Conf.DeleteProcess.MainPath, mtpn1 + "[" + uniqueId + "]");
-                    String mailExcelPath1 = Utils.saveDocReviewExcel(Conf.DeleteProcess.TamplatePath, 0,
+                if (mtpl1 == null) {
+                    log.info("Template-Document [ " + mtpn1 + " ] not found.");
+                }
+                else {
+                    String tplMailPath1 = Utils.exportDocument(mtpl1, Conf.DeleteProcess.MainPath, mtpn1 + "[" + uniqueId + "]");
+                    String mailExcelPath1 = Utils.saveDocReviewExcel(tplMailPath1, 0,
                             Conf.DeleteProcess.MainPath + "/" + mtpn1 + "[" + uniqueId + "].xlsx", dbks1
                     );
                     //String mailHtmlPath1 = Utils.convertExcelToHtml(mailExcelPath1,Conf.DeleteProcessSheetIndex.Deleted,Conf.DeleteProcess.MainPath + "/" + mtpn1 + "[" + uniqueId + "].html");
 
                     this.archiveNewTemplate(mailExcelPath1);
-                //}
+                }
 
 
                 int cnt = 0;
