@@ -127,15 +127,16 @@ public class DeletionDocs extends UnifiedAgent {
                         rcvo = (new SimpleDateFormat("dd-MM-yyyy HH:mm")).format(tbgn);
                     }
 
-                    dbks.put("DocNo" + (cnt > 9 ? cnt : "0" + cnt), (mdno != null  ? mdno : ""));
-                    dbks.put("RevNo" + (cnt > 9 ? cnt : "0" + cnt), (mdrn != null  ? mdrn : ""));
-                    dbks.put("Title" + (cnt > 9 ? cnt : "0" + cnt), xdoc.getDisplayName());
-                    dbks.put("Task" + (cnt > 9 ? cnt : "0" + cnt), task.getName());
-                    dbks.put("DocName" + (cnt > 9 ? cnt : "0" + cnt), (mdnm != null  ? mdnm : ""));
-                    dbks.put("ReceivedOn" + (cnt > 9 ? cnt : "0" + cnt), (rcvo != null ? rcvo : ""));
-                    dbks.put("ProcessTitle" + (cnt > 9 ? cnt : "0" + cnt), (processInstance != null ? processInstance.getDisplayName() : ""));
-                    dbks.put("ProjectNo" + (cnt > 9 ? cnt : "0" + cnt), (prjn != null  ? prjn : ""));
-                    dbks.put("DoxisDocLink" + (cnt > 9 ? cnt : "0" + cnt), mcfg.getString("webBase") + helper.getTaskURL(task.getID()));
+                    dbks.put("DocNo" + cnt, (mdno != null  ? mdno : ""));
+                    dbks.put("RevNo" + cnt, (mdrn != null  ? mdrn : ""));
+                    dbks.put("Title" + cnt, xdoc.getDisplayName());
+                    dbks.put("Task" + cnt, task.getName());
+                    dbks.put("DocName" + cnt, (mdnm != null  ? mdnm : ""));
+                    dbks.put("ReceivedOn" + cnt, (rcvo != null ? rcvo : ""));
+                    dbks.put("ProcessTitle" + cnt, (processInstance != null ? processInstance.getDisplayName() : ""));
+                    dbks.put("ProjectNo" + cnt, (prjn != null  ? prjn : ""));
+                    dbks.put("DoxisDocLink" + cnt + ".Text", "( Link )");
+                    //dbks.put("DoxisDocLink" + cnt, mcfg.getString("webBase") + helper.getTaskURL(task.getID()));
                     cnt++;
 
                 }
@@ -143,7 +144,7 @@ public class DeletionDocs extends UnifiedAgent {
                 dbks.put("docs", String.join(", ", docs));
 
                 String tplMailPath = Utils.exportDocument(mtpl, Conf.DeleteProcess.MainPath, mtpn + "[" + uniqueId + "]");
-                String mailExcelPath = Utils.saveDocReviewExcel(tplMailPath, 0,
+                String mailExcelPath = Utils.saveToExcel(tplMailPath, 0,
                         Conf.DeleteProcess.MainPath + "/" + mtpn + "[" + uniqueId + "].xlsx", dbks
                 );
                 String mailHtmlPath = Utils.convertExcelToHtml(mailExcelPath,

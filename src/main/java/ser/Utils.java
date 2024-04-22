@@ -436,6 +436,45 @@ public class Utils {
         tost.close();
         return tpltSavePath;
     }
+    public static String saveToExcel(String tpth, Integer shtIx, String tpltSavePath, JSONObject pbks) throws IOException {
+
+        FileInputStream tist = new FileInputStream(tpth);
+        XSSFWorkbook twrb = new XSSFWorkbook(tist);
+
+        Sheet tsht = twrb.getSheetAt(shtIx);
+        for (Row trow : tsht){
+            for(Cell tcll : trow){
+                if(tcll.getCellType() != CellType.STRING){continue;}
+                String clvl = tcll.getRichStringCellValue().getString();
+                String clvv = updateCell(clvl, pbks);
+                if(!clvv.equals(clvl)){
+                    tcll.setCellValue(clvv);
+                }
+
+                if(clvv.indexOf("[[") != (-1) && clvv.indexOf("]]") != (-1)
+                        && clvv.indexOf("[[") < clvv.indexOf("]]")){
+                    String znam = clvv.substring(clvv.indexOf("[[") + "[[".length(), clvv.indexOf("]]"));
+                    if(pbks.has(znam)){
+                        String zval = znam;
+                        if(pbks.has(znam + ".Text")){
+                            zval = pbks.getString(znam + ".Text");
+                        }
+                        tcll.setCellValue(zval);
+                        String lurl = pbks.getString(znam);
+                        if(!lurl.isEmpty()) {
+                            Hyperlink link = twrb.getCreationHelper().createHyperlink(HyperlinkType.URL);
+                            link.setAddress(lurl);
+                            tcll.setHyperlink(link);
+                        }
+                    }
+                }
+            }
+        }
+        FileOutputStream tost = new FileOutputStream(tpltSavePath);
+        twrb.write(tost);
+        tost.close();
+        return tpltSavePath;
+    }
     public static String convertExcelToHtml(String excelPath, Integer shtIx, String htmlPath)  {
         Workbook workbook = new Workbook();
         workbook.loadFromFile(excelPath);

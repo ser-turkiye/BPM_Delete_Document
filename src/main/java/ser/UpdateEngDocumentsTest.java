@@ -11,13 +11,16 @@ import de.ser.doxis4.agentserver.UnifiedAgent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 public class UpdateEngDocumentsTest extends UnifiedAgent {
     private Logger log = LogManager.getLogger();
     private ProcessHelper helper;
+    List<String> updated = new ArrayList<>();
     String decisionCode = "";
     @Override
     protected Object execute() {
@@ -40,6 +43,7 @@ public class UpdateEngDocumentsTest extends UnifiedAgent {
                     log.info("usage object : " + xdoc.getID() + " /// type : " + objType);
                     if(objType != InformationObjectType.PROCESS_INSTANCE){continue;}
                     if(Objects.equals(xdoc.getClassID(), Conf.ClassIDs.ReviewMain)){
+                        decisionCode = "";
                         IProcessInstance proi = (IProcessInstance) xdoc;
                         IDocument mainDocument = (IDocument) proi.getMainInformationObject();
                         if(mainDocument == null){return resultSuccess("No-Main document");}
@@ -58,6 +62,7 @@ public class UpdateEngDocumentsTest extends UnifiedAgent {
                                 log.info("Approval Code updated.. decisionCode IS:" + decisionCode);
                                 mainDocument.setDescriptorValue("ccmPrjDocApprCode", decisionCode);
                                 mainDocument.commit();
+                                updated.add(mainDocument.getID() + " > " + mainDocument.getDescriptorValue(Conf.Descriptors.DocNumber) + " > " + decisionCode);
                                 log.info("UpdateEngDocument batch...maindoc committed...APPR CODE IS:" + mainDocument.getDescriptorValue("ccmPrjDocApprCode"));
                                 TimeUnit.SECONDS.sleep(30);
                                 log.info("UpdateEngDocument batch...sleeping (30 second)");

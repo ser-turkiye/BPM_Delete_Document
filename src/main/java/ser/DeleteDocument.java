@@ -90,21 +90,6 @@ public class DeleteDocument extends UnifiedAgent {
                     break;
                 }
 
-                JSONObject dbks1 = new JSONObject();
-                dbks1.put("docs", String.join(", ", docs));
-                if (mtpl1 == null) {
-                    log.info("Template-Document [ " + mtpn1 + " ] not found.");
-                }
-                else {
-                    String tplMailPath1 = Utils.exportDocument(mtpl1, Conf.DeleteProcess.MainPath, mtpn1 + "[" + uniqueId + "]");
-                    String mailExcelPath1 = Utils.saveDocReviewExcel(tplMailPath1, 0,
-                            Conf.DeleteProcess.MainPath + "/" + mtpn1 + "[" + uniqueId + "].xlsx", dbks1
-                    );
-                    //String mailHtmlPath1 = Utils.convertExcelToHtml(mailExcelPath1,Conf.DeleteProcessSheetIndex.Deleted,Conf.DeleteProcess.MainPath + "/" + mtpn1 + "[" + uniqueId + "].html");
-
-                    this.archiveNewTemplate(mailExcelPath1);
-                }
-
 
                 int cnt = 0;
                 JSONObject dbks = new JSONObject();
@@ -153,19 +138,34 @@ public class DeleteDocument extends UnifiedAgent {
                         rcvo = (new SimpleDateFormat("dd-MM-yyyy HH:mm")).format(tbgn);
                     }
 
-                    dbks.put("DocNo" + (cnt > 9 ? cnt : "0" + cnt), (mdno != null  ? mdno : ""));
-                    dbks.put("RevNo" + (cnt > 9 ? cnt : "0" + cnt), (mdrn != null  ? mdrn : ""));
-                    dbks.put("Title" + (cnt > 9 ? cnt : "0" + cnt), mainDocument.getDisplayName());
-                    dbks.put("Task" + (cnt > 9 ? cnt : "0" + cnt), mainTask.getName());
-                    dbks.put("DocName" + (cnt > 9 ? cnt : "0" + cnt), (mdnm != null  ? mdnm : ""));
-                    dbks.put("ReceivedOn" + (cnt > 9 ? cnt : "0" + cnt), (rcvo != null ? rcvo : ""));
-                    dbks.put("ProcessTitle" + (cnt > 9 ? cnt : "0" + cnt), (processInstance != null ? processInstance.getDisplayName() : ""));
-                    dbks.put("ProjectNo" + (cnt > 9 ? cnt : "0" + cnt), (prjn != null  ? prjn : ""));
-                    dbks.put("DoxisLink" + (cnt > 9 ? cnt : "0" + cnt), mcfg.getString("webBase") + helper.getTaskURL(mainTask.getID()));
+                    dbks.put("DocNo" + cnt, (mdno != null  ? mdno : ""));
+                    dbks.put("RevNo" + cnt, (mdrn != null  ? mdrn : ""));
+                    dbks.put("Title" + cnt, xdoc.getDisplayName());
+                    dbks.put("Task" + cnt, mainTask.getName());
+                    dbks.put("DocName" + cnt, (mdnm != null  ? mdnm : ""));
+                    dbks.put("ReceivedOn" + cnt, (rcvo != null ? rcvo : ""));
+                    dbks.put("ProcessTitle" + cnt, (processInstance != null ? processInstance.getDisplayName() : ""));
+                    dbks.put("ProjectNo" + cnt, (prjn != null  ? prjn : ""));
 
+                    dbks.put("DoxisDocLink" + cnt + ".Text", "( Link )");
+                    //dbks.put("DoxisLink" + (cnt > 9 ? cnt : "0" + cnt), mcfg.getString("webBase") + helper.getTaskURL(mainTask.getID()));
+                    docs.add(xdoc.getDescriptorValue(Conf.Descriptors.DocNumber));
                     this.deleteDocument((IDocument) xdoc);
                 }
 
+                JSONObject dbks1 = new JSONObject();
+                dbks1.put("docs", String.join(", ", docs));
+                if (mtpl1 == null) {
+                    log.info("Template-Document [ " + mtpn1 + " ] not found.");
+                }
+                else {
+                    String tplMailPath1 = Utils.exportDocument(mtpl1, Conf.DeleteProcess.MainPath, mtpn1 + "[" + uniqueId + "]");
+                    String mailExcelPath1 = Utils.saveToExcel(tplMailPath1, 0,
+                            Conf.DeleteProcess.MainPath + "/" + mtpn1 + "[" + uniqueId + "].xlsx", dbks1
+                    );
+                    //String mailHtmlPath1 = Utils.convertExcelToHtml(mailExcelPath1,Conf.DeleteProcessSheetIndex.Deleted,Conf.DeleteProcess.MainPath + "/" + mtpn1 + "[" + uniqueId + "].html");
+                    //this.archiveNewTemplate(mailExcelPath1);
+                }
                 //JSONObject dbks = new JSONObject();
                 dbks.put("docs", String.join(", ", docs));
                 if (mtpl == null) {
@@ -173,7 +173,7 @@ public class DeleteDocument extends UnifiedAgent {
                     //throw new Exception("Template-Document [ " + mtpn + " ] not found.");
                 } else {
                     String tplMailPath = Utils.exportDocument(mtpl, Conf.DeleteProcess.MainPath, mtpn + "[" + uniqueId + "]");
-                    String mailExcelPath = Utils.saveDocReviewExcel(tplMailPath, 0,
+                    String mailExcelPath = Utils.saveToExcel(tplMailPath, 0,
                             Conf.DeleteProcess.MainPath + "/" + mtpn + "[" + uniqueId + "].xlsx", dbks
                     );
                     String mailHtmlPath = Utils.convertExcelToHtml(mailExcelPath,
