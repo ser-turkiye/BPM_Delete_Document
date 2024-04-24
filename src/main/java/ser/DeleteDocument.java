@@ -264,6 +264,10 @@ public class DeleteDocument extends UnifiedAgent {
 
     private void archiveNewTemplate(String tpltSavePath) throws Exception {
         IDocument doc = newFileToDocumentClass(tpltSavePath, Conf.ClassIDs.GeneralDocument);
+        doc.setDescriptorValue("ccmFileName" , "Deleted Process Log File.xlsx");
+        doc.setDescriptorValue("ccmPrjDocDocType" , "DOC");
+        doc.setDescriptorValue("ccmReferenceNumber" , getEventTask().getProcessInstance().getMainInformationObjectID());
+        doc.commit();
         //getEventTask().getProcessInstance().getLoadedInformationObjectLinks().addInformationObject(doc.getID());
         getEventTask().getProcessInstance().setMainInformationObjectID(doc.getID());
         getEventTask().commit();
