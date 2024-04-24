@@ -157,19 +157,6 @@ public class DeleteDocument extends UnifiedAgent {
                     this.deleteDocument((IDocument) xdoc);
                 }
 
-                JSONObject dbks1 = new JSONObject();
-                dbks1.put("docs", String.join(", ", docs));
-                if (mtpl1 == null) {
-                    log.info("Template-Document [ " + mtpn1 + " ] not found.");
-                }
-                else {
-                    String tplMailPath1 = Utils.exportDocument(mtpl1, Conf.DeleteProcess.MainPath, mtpn1 + "[" + uniqueId + "]");
-                    String mailExcelPath1 = Utils.saveToExcel(tplMailPath1, 0,
-                            Conf.DeleteProcess.MainPath + "/" + mtpn1 + "[" + uniqueId + "].xlsx", dbks1
-                    );
-                    //String mailHtmlPath1 = Utils.convertExcelToHtml(mailExcelPath1,Conf.DeleteProcessSheetIndex.Deleted,Conf.DeleteProcess.MainPath + "/" + mtpn1 + "[" + uniqueId + "].html");
-                    //this.archiveNewTemplate(mailExcelPath1);
-                }
                 //JSONObject dbks = new JSONObject();
                 dbks.put("docs", String.join(", ", docs));
                 if (mtpl == null) {
@@ -186,6 +173,8 @@ public class DeleteDocument extends UnifiedAgent {
                     String mailHtmlPath = Utils.convertExcelToHtml(mailExcelPath,
                             0,
                             Conf.DeleteProcess.MainPath + "/" + mtpn + "[" + uniqueId + "].html");
+
+                    this.archiveNewTemplate(mailExcelPath);
 
                     String umail = processOwner.getEMailAddress();
                     List<String> mails = new ArrayList<>();
@@ -275,7 +264,8 @@ public class DeleteDocument extends UnifiedAgent {
 
     private void archiveNewTemplate(String tpltSavePath) throws Exception {
         IDocument doc = newFileToDocumentClass(tpltSavePath, Conf.ClassIDs.GeneralDocument);
-        getEventTask().getProcessInstance().getLoadedInformationObjectLinks().addInformationObject(doc.getID());
+        //getEventTask().getProcessInstance().getLoadedInformationObjectLinks().addInformationObject(doc.getID());
+        getEventTask().getProcessInstance().setMainInformationObjectID(doc.getID());
         getEventTask().commit();
     }
     public IDocument newFileToDocumentClass(String filePath, String archiveClassID) throws Exception {
