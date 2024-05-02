@@ -76,19 +76,16 @@ dependencies {
     externalImplementation group: 'org.json', name: 'json', version: '20231013'
 
     // https://mvnrepository.com/artifact/org.apache.poi/poi-ooxml-full
-    externalImplementation group: 'org.apache.poi', name: 'poi-ooxml-full', version: '5.2.3'
+    externalImplementation group: 'org.apache.poi', name: 'poi-ooxml-full', version: '5.2.5'
 
     // https://mvnrepository.com/artifact/org.apache.poi/poi-scratchpad
-    externalImplementation group: 'org.apache.poi', name: 'poi-scratchpad', version: '5.2.3'
+    externalImplementation group: 'org.apache.poi', name: 'poi-scratchpad', version: '5.2.5'
 
     // https://mvnrepository.com/artifact/org.apache.poi/poi
-    externalImplementation group: 'org.apache.poi', name: 'poi', version: '5.2.3'
-
-    // https://mvnrepository.com/artifact/org.apache.poi/poi-scratchpad
-    externalImplementation group: 'org.apache.poi', name: 'poi-scratchpad', version: '5.2.3'
+    externalImplementation group: 'org.apache.poi', name: 'poi', version: '5.2.5'
 
     // https://mvnrepository.com/artifact/org.apache.poi/poi-examples
-    externalImplementation group: 'org.apache.poi', name: 'poi-examples', version: '5.2.3'
+    externalImplementation group: 'org.apache.poi', name: 'poi-examples', version: '5.2.5'
 
     ///BB-finish
 
