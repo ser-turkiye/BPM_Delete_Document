@@ -647,7 +647,7 @@ public class Utils {
         }
 
         mrow.setZeroHeight(true);
-        tsht.setColumnHidden(colIx, true);
+        //tsht.setColumnHidden(colIx, true);
 
         FileOutputStream tost = new FileOutputStream(spth);
         twrb.write(tost);
