@@ -99,7 +99,9 @@ public class DeleteDocument extends UnifiedAgent {
                 JSONObject mcfg = Utils.getMailConfig();
                 dbks.put("DoxisLink", mcfg.getString("webBase") + helper.getTaskURL(processInstance.getID()));
 
-                String prjn = "",  mdno = "", mdrn = "", mdnm = "";
+                String prjn = "",  mdno = "", mdrn = "", mdnm = "", notes = "", filename = "";
+                notes = mainTask.getDescriptorValue(Conf.Descriptors.notes, String.class);
+
                 IInformationObjectLinks links = mainTask.getProcessInstance().getLoadedInformationObjectLinks();
                 for (ILink link : links.getLinks()) {
                     IInformationObject xdoc = link.getTargetInformationObject();
@@ -108,6 +110,7 @@ public class DeleteDocument extends UnifiedAgent {
                         continue;
                     }
                     prjn = xdoc.getDescriptorValue(Conf.Descriptors.ProjectNo, String.class);
+                    filename = Utils.getFileName((IDocument) xdoc);
                     //this.deleteDocument(xdoc);
                     if(xdoc != null &&  Utils.hasDescriptor((IInformationObject) xdoc, Conf.Descriptors.ProjectNo)){
                         prjn = xdoc.getDescriptorValue(Conf.Descriptors.ProjectNo, String.class);
@@ -147,6 +150,7 @@ public class DeleteDocument extends UnifiedAgent {
                     dbks.put("Title" + cnt, xdoc.getDisplayName());
                     dbks.put("Task" + cnt, mainTask.getName());
                     dbks.put("DocName" + cnt, (mdnm != null  ? mdnm : ""));
+                    dbks.put("FileName" + cnt, (filename != null  ? filename : ""));
                     dbks.put("ReceivedOn" + cnt, (rcvo != null ? rcvo : ""));
                     dbks.put("ProcessTitle" + cnt, (processInstance != null ? processInstance.getDisplayName() : ""));
                     dbks.put("ProjectNo" + cnt, (prjn != null  ? prjn : ""));
@@ -159,6 +163,8 @@ public class DeleteDocument extends UnifiedAgent {
 
                 //JSONObject dbks = new JSONObject();
                 dbks.put("docs", String.join(", ", docs));
+                dbks.put("notes", String.join(", ", notes));
+
                 if (mtpl == null) {
                     log.info("Template-Document [ " + mtpn + " ] not found.");
                     //throw new Exception("Template-Document [ " + mtpn + " ] not found.");

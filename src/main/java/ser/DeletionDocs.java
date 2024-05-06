@@ -86,7 +86,8 @@ public class DeletionDocs extends UnifiedAgent {
 
                 int cnt = 0;
                 this.helper = new ProcessHelper(Utils.session);
-                String prjn = "",  mdno = "", mdrn = "", mdnm = "";
+                String prjn = "",  mdno = "", mdrn = "", mdnm = "", notes = "", filename = "";
+                notes = task.getDescriptorValue(Conf.Descriptors.notes, String.class);
                 IInformationObjectLinks links = task.getProcessInstance().getLoadedInformationObjectLinks();
                 for (ILink link : links.getLinks()) {
                     IInformationObject xdoc = link.getTargetInformationObject();
@@ -96,6 +97,7 @@ public class DeletionDocs extends UnifiedAgent {
                     }
                     cnt++;
                     prjn = xdoc.getDescriptorValue(Conf.Descriptors.ProjectNo, String.class);
+                    filename = Utils.getFileName((IDocument) xdoc);
                     //this.deleteDocument(xdoc);
                     if(xdoc != null &&  Utils.hasDescriptor((IInformationObject) xdoc, Conf.Descriptors.ProjectNo)){
                         prjn = xdoc.getDescriptorValue(Conf.Descriptors.ProjectNo, String.class);
@@ -135,6 +137,7 @@ public class DeletionDocs extends UnifiedAgent {
                     dbks.put("Title" + cnt, xdoc.getDisplayName());
                     dbks.put("Task" + cnt, task.getName());
                     dbks.put("DocName" + cnt, (mdnm != null  ? mdnm : ""));
+                    dbks.put("FileName" + cnt, (filename != null  ? filename : ""));
                     dbks.put("ReceivedOn" + cnt, (rcvo != null ? rcvo : ""));
                     dbks.put("ProcessTitle" + cnt, (processInstance != null ? processInstance.getDisplayName() : ""));
                     dbks.put("ProjectNo" + cnt, (prjn != null  ? prjn : ""));
@@ -146,6 +149,7 @@ public class DeletionDocs extends UnifiedAgent {
                 }
 
                 dbks.put("docs", String.join(", ", docs));
+                dbks.put("notes", String.join(", ", notes));
 
 
                 String tplMailPath = Utils.exportDocument(mtpl, Conf.DeleteProcess.MainPath, mtpn + "[" + uniqueId + "]");

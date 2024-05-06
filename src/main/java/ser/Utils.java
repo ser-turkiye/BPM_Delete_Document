@@ -508,25 +508,12 @@ public class Utils {
         }
         return rtrn;
     }
-    public static String exportDocumentOLD(IDocument document, String exportPath, String fileName) throws IOException {
+    public static String getFileName(IDocument document) throws IOException {
         String rtrn ="";
         IDocumentPart partDocument = document.getPartDocument(document.getDefaultRepresentation() , 0);
-        String fName = (!fileName.isEmpty() ? fileName : partDocument.getFilename());
-        fName = fName.replaceAll("[\\\\/:*?\"<>|]", "_");
-        try (InputStream inputStream = partDocument.getRawDataAsStream()) {
-            IFDE fde = partDocument.getFDE();
-            if (fde.getFDEType() == IFDE.FILE) {
-                rtrn = exportPath + "/" + fName + "." + ((IFileFDE) fde).getShortFormatDescription();
-
-                try (FileOutputStream fileOutputStream = new FileOutputStream(rtrn)){
-                    byte[] bytes = new byte[2048];
-                    int length;
-                    while ((length = inputStream.read(bytes)) > -1) {
-                        fileOutputStream.write(bytes, 0, length);
-                    }
-                }
-            }
-        }
+        String fName = partDocument.getFilename();
+        //fName = fName.replaceAll("[\\\\/:*?\"<>|]", "_");
+        rtrn = fName;
         return rtrn;
     }
     public static Row getMasterRow(Sheet sheet, String prfx, Integer colIx)  {

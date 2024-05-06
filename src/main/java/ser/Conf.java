@@ -54,6 +54,7 @@ public class Conf {
         public static final String AprvCode = "ccmPrjDocApprCode";
         public static final String DocNumber = "ccmPrjDocNumber";
         public static final String Revision = "ccmPrjDocRevision";
+        public static final String notes = "Notes";
         public static final String Name = "ObjectName";
         public static final String ObjectNumber = "ObjectNumber";
         public static final String TemplateName = "ObjectNumberExternal";
