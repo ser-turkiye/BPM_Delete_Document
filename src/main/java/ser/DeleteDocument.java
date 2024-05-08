@@ -233,13 +233,13 @@ public class DeleteDocument extends UnifiedAgent {
                     String docClassID = xdoc.getClassID();
                     InformationObjectType objType = xdoc.getInformationObjectType();
                     log.info("Delete usage object : " + xdoc.getID() + " /// type : " + objType);
-                    if (Objects.equals(docClassID, Conf.ClassIDs.ReviewMain)) {
-                        IInformationObject[] sprs = Utils.getSubProcessies(mainDocument.getID(), this.helper);
-                        for (IInformationObject sinf : sprs) {
-                            ITask subtask = (ITask) sinf;
+//                    if (Objects.equals(docClassID, Conf.ClassIDs.ReviewMain)) {
+//                        IInformationObject[] sprs = Utils.getSubProcessies(mainDocument.getID(), this.helper);
+//                        for (IInformationObject sinf : sprs) {
+//                            ITask subtask = (ITask) sinf;
                             //getDocumentServer().deleteInformationObject(getSes(), sinf);baska turlu silinme yapıldı (else blogu)
-                        }
-                    }
+                        //}
+//                    }
                     if (objType != InformationObjectType.PROCESS_INSTANCE) {
                         continue;
                     }
