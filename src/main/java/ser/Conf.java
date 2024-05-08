@@ -72,6 +72,7 @@ public class Conf {
         public static final String PrjDocRev = "CCMPRJDOCREVISION";
         public static final String PRJCard_status = "CCMPRJCARD_STATUS";
         public static final String MainTaskReference = "MAINTASKREFERENCE";
+        public static final String MainDocumentReference = "MAINDOCUMENTREFERENCE";
         public static final String ObjectNumberExternal = "OBJECTNUMBER2";
 
     }

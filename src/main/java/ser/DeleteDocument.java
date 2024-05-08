@@ -236,8 +236,8 @@ public class DeleteDocument extends UnifiedAgent {
                     if (Objects.equals(docClassID, Conf.ClassIDs.ReviewMain)) {
                         IInformationObject[] sprs = Utils.getSubProcessies(mainDocument.getID(), this.helper);
                         for (IInformationObject sinf : sprs) {
-                            getDocumentServer().deleteInformationObject(getSes(), sinf);
-                            others.add(sinf.getDisplayName());
+                            ITask subtask = (ITask) sinf;
+                            //getDocumentServer().deleteInformationObject(getSes(), sinf);baska turlu silinme yapıldı (else blogu)
                         }
                     }
                     if (objType != InformationObjectType.PROCESS_INSTANCE) {
@@ -259,6 +259,27 @@ public class DeleteDocument extends UnifiedAgent {
                 for (IInformationObject infoCopyDoc : infoEngCopyDocs) {
                     infoCopyDoc.setDescriptorValue("ObjectName", "DELETED");
                     infoCopyDoc.commit();
+                }
+            }
+            else {
+                ILink[] links2 = getDocumentServer().getReferencingRelationships(getSes(), mainDocument.getID(), false);
+                for (ILink link2 : links2) {
+                    IInformationObject xdoc = link2.getSourceInformationObject();
+                    String docClassID = xdoc.getClassID();
+                    InformationObjectType objType = xdoc.getInformationObjectType();
+                    log.info("Delete usage object for copydoc : " + xdoc.getID() + " /// type : " + objType);
+                    if (objType != InformationObjectType.PROCESS_INSTANCE) {
+                        continue;
+                    }
+                    if (Objects.equals(docClassID, Conf.ClassIDs.ProjectCard)) {
+                        continue;
+                    }
+                    if (Objects.equals(docClassID, Conf.ClassIDs.DeleteProcess)) {
+                        continue;
+                    }
+                    others.add(xdoc.getDisplayName());
+                    getDocumentServer().deleteInformationObject(getSes(), xdoc);
+                    log.info("deleted usage object for copydoc ");
                 }
             }
             getDocumentServer().deleteInformationObject(getSes(),mainDocument);

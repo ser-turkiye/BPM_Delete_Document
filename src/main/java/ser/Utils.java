@@ -774,7 +774,7 @@ public class Utils {
         StringBuilder builder = new StringBuilder();
         builder.append("TYPE = '").append(Conf.ClassIDs.SubProcess).append("'")
                 .append(" AND ")
-                .append(Conf.DescriptorLiterals.MainTaskReference).append(" = '").append(mainDocId).append("'");
+                .append(Conf.DescriptorLiterals.MainDocumentReference).append(" = '").append(mainDocId).append("'");
         String whereClause = builder.toString();
         log.info("Where Clause: " + whereClause);
         IInformationObject[] list = helper.createQuery(new String[]{Conf.Databases.Process}, whereClause, "", 0, false);
