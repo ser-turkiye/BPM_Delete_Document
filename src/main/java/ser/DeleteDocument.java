@@ -22,6 +22,7 @@ public class DeleteDocument extends UnifiedAgent {
     private IDocument mainDocument;
     JSONObject projects = new JSONObject();
     private ITask mainTask;
+    private ITask task;
     private String notes;
     String prjn = "";
     List<String> docs = new ArrayList<>();
@@ -29,6 +30,7 @@ public class DeleteDocument extends UnifiedAgent {
     @Override
     protected Object execute() {
         helper = new ProcessHelper(getSes());
+        task = getEventTask();
         if(getEventDocument() != null && Objects.equals(getEventDocument().getClassID(), Conf.ClassIDs.EngineeringCopy)){
             mainDocument = getEventDocument();
             try {
@@ -107,7 +109,7 @@ public class DeleteDocument extends UnifiedAgent {
                     IInformationObject xdoc = link.getTargetInformationObject();
                     String taskName = xdoc.getDescriptorValue("ccmPrjDocWFTaskName");
                     if (!xdoc.getClassID().equals(Conf.ClassIDs.EngineeringDocument)) {
-                        continue;
+                        //continue; //unitdoc silinme islemleri icin kapatıldı
                     }
                     prjn = xdoc.getDescriptorValue(Conf.Descriptors.ProjectNo, String.class);
                     filename = Utils.getFileName((IDocument) xdoc);
@@ -180,7 +182,7 @@ public class DeleteDocument extends UnifiedAgent {
                             0,
                             Conf.DeleteProcess.MainPath + "/" + mtpn + "[" + uniqueId + "].html");
 
-                    this.archiveNewTemplate(mailExcelPath);
+                    ///this.archiveNewTemplate(mailExcelPath); //hata alındıgı icin kapatıldı
 
                     String umail = processOwner.getEMailAddress();
                     List<String> mails = new ArrayList<>();
@@ -244,6 +246,9 @@ public class DeleteDocument extends UnifiedAgent {
                         continue;
                     }
                     if (Objects.equals(docClassID, Conf.ClassIDs.ProjectCard)) {
+                        continue;
+                    }
+                    if (Objects.equals(docClassID, Conf.ClassIDs.OrgUnitWS)) {
                         continue;
                     }
                     if (Objects.equals(docClassID, Conf.ClassIDs.DeleteProcess)) {

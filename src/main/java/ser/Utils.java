@@ -241,7 +241,8 @@ public class Utils {
             Multipart multipart = new MimeMultipart("mixed");
 
             BodyPart htmlBodyPart = new MimeBodyPart();
-            htmlBodyPart.setContent(getFileContent(pars.getString("BodyHTMLFile")), "text/html"); //5
+            //htmlBodyPart.setContent(getFileContent(pars.getString("BodyHTMLFile")), "text/html"); //5
+            htmlBodyPart.setContent(getHTMLFileContent(pars.getString("BodyHTMLFile")), "text/html; charset=UTF-8"); //5
             multipart.addBodyPart(htmlBodyPart);
 
             String[] atchs = attachments.split("\\;");
@@ -267,6 +268,16 @@ public class Utils {
         }else {
 
         }
+    }
+    public static String getHTMLFileContent (String path) throws Exception {
+        String rtrn = new String(Files.readAllBytes(Paths.get(path)), "UTF-8");
+        return getHTMLContentClear(rtrn);
+    }
+    public static String getHTMLContentClear (String strg) throws Exception {
+        String rtrn = strg;
+        rtrn = rtrn.replace("\uFEFF", "");
+        rtrn = rtrn.replace("ï»¿", "");
+        return rtrn;
     }
     static IStringMatrix getMailConfigMatrix(ISession ses, IDocumentServer srv, String mtpn) throws Exception {
         //IStringMatrix rtrn = srv.getStringMatrix("MailConfig" + (!mtpn.isEmpty() ? "." + mtpn : ""), ses);

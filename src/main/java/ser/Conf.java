@@ -79,6 +79,7 @@ public class Conf {
 
     public static class ClassIDs{
         public static final String ProjectCard = "32e74338-d268-484d-99b0-f90187240549";
+        public static final String OrgUnitWS = "65970887-aa58-45c2-8efe-c83056d87dab";
         public static final String InvolveParty = "fad93754-b7c2-4a12-b40e-8afae3b31e3d";
         public static final String EngineeringDocument = "3b3078f8-c0d0-4830-b963-88bebe1c1462";
         public static final String GeneralDocument = "3e1fe7b3-3e86-4910-8155-c29b662e71d6";

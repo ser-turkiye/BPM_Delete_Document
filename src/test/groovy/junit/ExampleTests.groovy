@@ -1,9 +1,12 @@
 package junit
 
 import de.ser.doxis4.agentserver.AgentExecutionResult
+import org.apache.poi.ss.formula.ptg.Deleted3DPxg
 import org.junit.*
+import ser.CancelProcess
 import ser.DeleteDocument
 import ser.DeletionDocs
+import ser.UpdateEngDocumentsTest
 
 class ExampleTests {
 
@@ -24,7 +27,7 @@ class ExampleTests {
 
         def agent = new DeletionDocs();
 
-        binding["AGENT_EVENT_OBJECT_CLIENT_ID"] = "ST03BPM245ad681ac-dc12-4ab6-9358-73f2d9cec1e5182024-03-12T08:36:30.056Z010"
+        binding["AGENT_EVENT_OBJECT_CLIENT_ID"] = "ST03BPM2478eeb2d5-6a30-4a6b-b007-db14c2a7d825182024-12-24T09:24:32.710Z011"
 
         def result = (AgentExecutionResult)agent.execute(binding.variables)
         System.out.println(result)

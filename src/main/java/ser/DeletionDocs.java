@@ -41,6 +41,22 @@ public class DeletionDocs extends UnifiedAgent {
         processInstance = task.getProcessInstance();
         String uniqueId = UUID.randomUUID().toString();
 
+        if(Utils.hasDescriptor((IInformationObject) processInstance, "ProcessID")) {
+            String pID = processInstance.getID();
+            if(processInstance.findLockInfo().getOwnerID() != null){
+                log.info("Process is locked.." + task.getID());
+            }
+            else {
+                log.info("start update.. doc ID:" + pID);
+                processInstance.setDescriptorValue("ProcessID", pID);
+                try {
+                    processInstance.commit();
+                }catch (Exception e){
+                    log.error("PRC ID NOT Updated Process for:" + processInstance.getDisplayName());
+                }
+            }
+        }
+
         List<String> mails = new ArrayList<>();
         log.info("Mail To : " + String.join(";", mails));
 
@@ -93,7 +109,7 @@ public class DeletionDocs extends UnifiedAgent {
                     IInformationObject xdoc = link.getTargetInformationObject();
                     String taskName = xdoc.getDescriptorValue("ccmPrjDocWFTaskName");
                     if (!xdoc.getClassID().equals(Conf.ClassIDs.EngineeringDocument)) {
-                        continue;
+                        ///continue; //unitdoc silinme islemleri icin kapatıldı
                     }
                     cnt++;
                     prjn = xdoc.getDescriptorValue(Conf.Descriptors.ProjectNo, String.class);
@@ -154,21 +170,21 @@ public class DeletionDocs extends UnifiedAgent {
 
                 String tplMailPath = Utils.exportDocument(mtpl, Conf.DeleteProcess.MainPath, mtpn + "[" + uniqueId + "]");
 
+
                 loadTableRows(tplMailPath, 0, "Task", 0, docs.size());
 
                 String mailExcelPath = Utils.saveToExcel(tplMailPath, 0,
                         Conf.DeleteProcess.MainPath + "/" + mtpn + "[" + uniqueId + "].xlsx", dbks
                 );
-                String mailHtmlPath = Utils.convertExcelToHtml(mailExcelPath,
-                        Conf.DeleteProcessSheetIndex.Deletion,
-                        Conf.DeleteProcess.MainPath + "/" + mtpn + "[" + uniqueId + "].html");
+
+                String mailHtmlPath = Utils.convertExcelToHtml(mailExcelPath, Conf.DeleteProcessSheetIndex.Deletion, Conf.DeleteProcess.MainPath + "/" + mtpn + "[" + uniqueId + "].html");
 
                 JSONObject mail = new JSONObject();
                 mail.put("To", String.join(";", mails));
                 //mail.put("Subject", "New Documents Deletion Request");
                 mail.put("Subject", "Doc.(s) Deletion Request");
                 mail.put("BodyHTMLFile", mailHtmlPath);
-                Utils.sendHTMLMail(mail, mcfg);
+                Utils.sendHTMLMail(mail, null);
             }
         } catch (Exception e) {
             log.error("Exception Caught");

@@ -103,7 +103,7 @@ public class UpdateEngDocumentsTest extends UnifiedAgent {
             mainDocument.setDescriptorValue("DocID", docID);
             mainDocument.commit();
             log.info("Updated EngDocument batch...maindoc committed...DOC ID IS:" + mainDocument.getDescriptorValue("DocID"));
-            TimeUnit.SECONDS.sleep(30);
+            //TimeUnit.SECONDS.sleep(30);
             log.info("UpdateEngDocument batch...sleeping (30 second)");
         }
     }
