@@ -57,15 +57,16 @@ public class CancelProcess extends UnifiedAgent {
             JSONObject mcfg = Utils.getMailConfig();
             dbks.put("DoxisLink", mcfg.getString("webBase") + helper.getTaskURL(processInstance.getID()));
 
-            String prjn = "",  mdno = "", mdrn = "", mdnm = "";
+            String prjn = "",  mdno = "", mdrn = "", mdnm = "", filename = "";;
             IInformationObjectLinks links = mainTask.getProcessInstance().getLoadedInformationObjectLinks();
             for (ILink link : links.getLinks()) {
                 IInformationObject xdoc = link.getTargetInformationObject();
                 String taskName = xdoc.getDescriptorValue("ccmPrjDocWFTaskName");
                 if (!xdoc.getClassID().equals(Conf.ClassIDs.EngineeringDocument)) {
-                    continue;
+                    ///continue; //unitdoc silinme islemleri icin kapatıldı
                 }
                 prjn = xdoc.getDescriptorValue(Conf.Descriptors.ProjectNo, String.class);
+                filename = Utils.getFileName((IDocument) xdoc);
 
                 if(xdoc != null &&  Utils.hasDescriptor((IInformationObject) xdoc, Conf.Descriptors.ProjectNo)){
                     prjn = xdoc.getDescriptorValue(Conf.Descriptors.ProjectNo, String.class);
@@ -105,7 +106,8 @@ public class CancelProcess extends UnifiedAgent {
                 dbks.put("Title" + cnt, xdoc.getDisplayName());
                 dbks.put("Task" + cnt, mainTask.getName());
                 dbks.put("DocName" + cnt, (mdnm != null  ? mdnm : ""));
-                dbks.put("CancelledOn" + cnt, (rcvo != null ? rcvo : ""));
+                dbks.put("FileName" + cnt, (filename != null  ? filename : ""));
+                dbks.put("ReceivedOn" + cnt, (rcvo != null ? rcvo : ""));
                 dbks.put("ProcessTitle" + cnt, (processInstance != null ? processInstance.getDisplayName() : ""));
                 dbks.put("ProjectNo" + cnt, (prjn != null  ? prjn : ""));
                 dbks.put("DoxisDocLink" + cnt, mcfg.get("webBase") + helper.getDocumentURL(xdoc.getID()));
